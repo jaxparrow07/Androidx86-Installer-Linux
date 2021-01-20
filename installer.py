@@ -7,8 +7,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 # from PyQt5 import QtWidgets, uic
 
-theme = open('app/MacOS.qss','r')
-
 class AboutWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -74,7 +72,7 @@ class Example(QMainWindow):
 
     def OpenAbout(self):
         self.abtwin = AboutWindow()
-        self.abtwin.setAttribute(Qt.WA_DeleteOnClose, True)
+        self.abtwin.setParent(self, Qt.Window)
         self.abtwin.show()
 
     def func_quit_all_windows(self):
