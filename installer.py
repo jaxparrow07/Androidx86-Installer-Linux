@@ -15,15 +15,46 @@ class Example(QMainWindow):
 
     def initUI(self):
 
+        # Adding Side Options in Menu
+
         exitAct = QAction(QIcon('exit.png'), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
         self.statusBar()
 
+        selectiso = QAction(QIcon('exit.png'), '&Select iso', self)
+        selectiso.setShortcut('Ctrl+F')
+        selectiso.setStatusTip('Select iso file')
+        selectiso.triggered.connect(qApp.quit)
+        self.statusBar()
+
+        AboutAct = QAction(QIcon('exit.png'), '&About', self)
+        AboutAct.setShortcut('Ctrl+A')
+        AboutAct.setStatusTip('About application')
+        AboutAct.triggered.connect(qApp.quit)
+        self.statusBar()
+
+        HelpAct = QAction(QIcon('exit.png'), '&Help', self)
+        HelpAct.setShortcut('Ctrl+H')
+        HelpAct.setStatusTip('Help for  application')
+        HelpAct.triggered.connect(qApp.quit)
+        self.statusBar()
+
+        ############################################################
+
         menubar = self.menuBar()
+
+        # Adding Top Menus
         fileMenu = menubar.addMenu('&File')
+        fileMenu.addAction(selectiso)
         fileMenu.addAction(exitAct)
+
+        helpMenu = menubar.addMenu('&Help')
+        helpMenu.addAction(HelpAct)
+        helpMenu.addAction(AboutAct)
+
+        ############################################################
 
         self.setStyleSheet(theme.read())
         self.setGeometry(550, 100, 370, 540)
