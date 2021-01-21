@@ -71,7 +71,7 @@ class AboutWindow(QWidget):
 
 class Example(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, parent=None, frame=QFrame.Box):
         super().__init__()
         self.initUI()
 
@@ -103,7 +103,7 @@ class Example(QMainWindow):
         HelpAct.triggered.connect(self.OpenHelp)
         self.statusBar()
 
-        ############################################################
+        ##################   Menubar  #############################
 
         menubar = self.menuBar()
 
@@ -116,8 +116,49 @@ class Example(QMainWindow):
         helpMenu.addAction(HelpAct)
         helpMenu.addAction(AboutAct)
 
-        ############################################################
+        ###################   MainUI   #############################
 
+        # Init Base Layout
+        mlayout = QVBoxLayout()
+        mlayout.setAlignment(Qt.AlignTop)
+
+        Toplayout = QVBoxLayout()
+        Toplayout.setAlignment(Qt.AlignCenter)
+        Toplayout.addWidget(QLabel('Top'))
+
+        Bottomlayout = QVBoxLayout()
+        Bottomlayout.setAlignment(Qt.AlignCenter)
+        Bottomlayout.addWidget(QLabel('Bottom'))
+
+        Bottommenu = QHBoxLayout()
+        Bottommenu.setAlignment(Qt.AlignCenter)
+        Bottommenu.addWidget(QLabel('Bottom Toolbar'))
+
+        Bmenuwid = QWidget()
+        Bmenuwid.setLayout(Bottomlayout)
+        Bmenuwid.setFixedHeight(60)
+        Bmenuwid.setStyleSheet("background-color:grey")
+
+        Toplaywid = QWidget()
+        Toplaywid.setLayout(Toplayout)
+        Toplaywid.setFixedHeight(200)
+        Toplaywid.setStyleSheet("background-color:grey")
+
+        Bottomlaywid = QWidget()
+        Bottomlaywid.setLayout(Bottomlayout)
+        Bottomlaywid.setFixedHeight(200)
+        Bottomlaywid.setStyleSheet("background-color:grey")
+
+        # Adding created widgets
+        mlayout.addWidget(Toplaywid)
+        mlayout.addWidget(Bottomlaywid)
+        mlayout.addWidget(Bmenuwid)
+
+        Mainwidget = QWidget()
+        Mainwidget.setLayout(mlayout)
+        self.setCentralWidget(Mainwidget)
+
+        ################### Properties ############################
         self.setGeometry(550, 100, 370, 540)
         self.setFixedWidth(370)
         self.setFixedHeight(540)
