@@ -123,35 +123,54 @@ class Example(QMainWindow):
         mlayout.setAlignment(Qt.AlignTop)
 
         Toplayout = QVBoxLayout()
-        Toplayout.setAlignment(Qt.AlignCenter)
-        Toplayout.addWidget(QLabel('Top'))
+        Toplayout.setAlignment(Qt.AlignTop)
+
+        # Init Top Layout
+        self.selectediso = QLabel('Iso : None')
+        self.selectediso.setAlignment(Qt.AlignCenter)
+        self.OSNAMEtxt = QLineEdit()
+        self.OSVERtxt = QLineEdit()
+        Toplayout.addWidget(self.selectediso)
+        Toplayout.addWidget(QLabel('OS Name'))
+        Toplayout.addWidget(self.OSNAMEtxt)
+        Toplayout.addWidget(QLabel('OS Version'))
+        Toplayout.addWidget(self.OSVERtxt)
+
+
+
 
         Bottomlayout = QVBoxLayout()
         Bottomlayout.setAlignment(Qt.AlignCenter)
-        Bottomlayout.addWidget(QLabel('Bottom'))
+        Bottomlayout.addWidget(QPushButton('Bottom'))
 
         Bottommenu = QHBoxLayout()
-        Bottommenu.setAlignment(Qt.AlignCenter)
-        Bottommenu.addWidget(QLabel('Bottom Toolbar'))
+        Bottommenu.setAlignment(Qt.AlignVCenter)
+
+        # Init Bottom Toolbar
+        self.Installbtn = QPushButton('Install')
+        self.Installbtn.setEnabled(False)
+
+        Bottommenu.addWidget(QLabel('            '))
+        Bottommenu.addWidget(self.Installbtn)
 
         Bmenuwid = QWidget()
-        Bmenuwid.setLayout(Bottomlayout)
+        Bmenuwid.setLayout(Bottommenu)
         Bmenuwid.setFixedHeight(60)
-        Bmenuwid.setStyleSheet("background-color:grey")
 
-        Toplaywid = QWidget()
-        Toplaywid.setLayout(Toplayout)
-        Toplaywid.setFixedHeight(200)
-        Toplaywid.setStyleSheet("background-color:grey")
+        self.Toplaywid = QWidget()
+        self.Toplaywid.setLayout(Toplayout)
+        self.Toplaywid.setFixedHeight(370)
+        self.Toplaywid.setStyleSheet("background-color:#353535")
 
-        Bottomlaywid = QWidget()
-        Bottomlaywid.setLayout(Bottomlayout)
-        Bottomlaywid.setFixedHeight(200)
-        Bottomlaywid.setStyleSheet("background-color:grey")
+        self.Statustext = QLabel('NOT READY')
+        self.Statustext.setFont(QFont('Arial',15))
+        self.Statustext.setAlignment(Qt.AlignCenter)
 
         # Adding created widgets
-        mlayout.addWidget(Toplaywid)
-        mlayout.addWidget(Bottomlaywid)
+        mlayout.addWidget(self.Toplaywid)
+        mlayout.addWidget(QLabel(' '))
+        mlayout.addWidget(QLabel(' '))
+        mlayout.addWidget(self.Statustext)
         mlayout.addWidget(Bmenuwid)
 
         Mainwidget = QWidget()
@@ -171,7 +190,15 @@ class Example(QMainWindow):
         fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
                                                   "Android Image Files (*.iso)", options=options)
         if fileName:
-            print(fileName)
+            self.Installbtn.setEnabled(True)
+            self.selectediso.setText('Iso : Selected')
+            self.Statustext.setText('READY')
+            self.Statustext.setStyleSheet('color:#00C7B6')
+        else:
+            self.Installbtn.setEnabled(False)
+            self.selectediso.setText('Iso : None')
+            self.Statustext.setText('NOT READY')
+            self.Statustext.setStyleSheet('color:#FFFFFF')
 
     def OpenAbout(self):
         self.abtwin = AboutWindow()
