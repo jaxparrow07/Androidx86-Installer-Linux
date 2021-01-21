@@ -6,8 +6,32 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 # from PyQt5 import QtWidgets, uic
+helptxt = """Select an iso to be installed.
+It must contain a system.img for system to be installed.
+Make sure the iso is not broken and downloaded correctly.
 
-version_name = 'v0.01 Alpha'
+Install to a specific partition."""
+
+version_name = 'v0.02 Alpha'
+
+class HelpWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.widget = QWidget(self)
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignTop)
+        helptext = QLabel(helptxt)
+        helptext.adjustSize()
+        helptext.setFixedWidth(330)
+        helptext.setWordWrap(True)
+        helptext.setAlignment(Qt.AlignLeft)
+        layout.addWidget(helptext)
+
+        self.setWindowTitle('Help')
+        self.setGeometry(570, 190, 330, 330)
+        self.setFixedWidth(330)
+        self.setFixedHeight(330)
+
 
 class AboutWindow(QWidget):
     def __init__(self):
@@ -76,7 +100,7 @@ class Example(QMainWindow):
         HelpAct = QAction(QIcon('exit.png'), '&Help', self)
         HelpAct.setShortcut('Ctrl+H')
         HelpAct.setStatusTip('Help for  application')
-        HelpAct.triggered.connect(qApp.quit)
+        HelpAct.triggered.connect(self.OpenHelp)
         self.statusBar()
 
         ############################################################
@@ -112,6 +136,11 @@ class Example(QMainWindow):
         self.abtwin = AboutWindow()
         self.abtwin.setParent(self, Qt.Window)
         self.abtwin.show()
+
+    def OpenHelp(self):
+        self.hlpwin = HelpWindow()
+        self.hlpwin.setParent(self, Qt.Window)
+        self.hlpwin.show()
 
     def func_quit_all_windows(self):
         sys.exit()
