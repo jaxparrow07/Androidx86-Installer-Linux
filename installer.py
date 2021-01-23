@@ -6,6 +6,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from time import sleep
+
 # from PyQt5 import QtWidgets, uic
 helptxt = """Select an iso to be installed.
 It must contain a system.img for system to be installed.
@@ -15,14 +16,15 @@ Install to a specific partition."""
 
 version_name = 'v0.02 Alpha'
 
+
 class HelpWindow(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__( self ):
+        super( ).__init__( )
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignTop)
         helptext = QLabel(helptxt)
-        helptext.adjustSize()
+        helptext.adjustSize( )
         helptext.setFixedWidth(330)
         helptext.setWordWrap(True)
         helptext.setAlignment(Qt.AlignLeft)
@@ -35,13 +37,13 @@ class HelpWindow(QWidget):
 
 
 class AboutWindow(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__( self ):
+        super( ).__init__( )
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
         layout.addWidget(self.widget)
         pixmap = QPixmap('app/sg_logo.png')
-        pixmap = pixmap.scaled(150,150,Qt.KeepAspectRatio)
+        pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio)
         Pixmap_label = QLabel(self)
         Pixmap_label.setPixmap(pixmap)
         Pixmap_label.setAlignment(Qt.AlignCenter)
@@ -50,7 +52,7 @@ class AboutWindow(QWidget):
 
         version_app = QLabel(version_name)
         version_app.setAlignment(Qt.AlignCenter)
-        version_app.adjustSize()
+        version_app.adjustSize( )
 
         layout.addWidget(version_app)
 
@@ -60,8 +62,8 @@ class AboutWindow(QWidget):
         layout.addWidget(SG_Name)
         layout.addWidget(QLabel(' '))
         author_name = QLabel('Programmed by Jaxparrow')
-        author_name.setFont(QFont('Arial',9))
-        author_name.adjustSize()
+        author_name.setFont(QFont('Arial', 9))
+        author_name.adjustSize( )
         author_name.setAlignment(Qt.AlignCenter)
         layout.addWidget(author_name)
         layout.setAlignment(Qt.AlignCenter)
@@ -70,43 +72,44 @@ class AboutWindow(QWidget):
         self.setFixedWidth(330)
         self.setFixedHeight(330)
 
+
 class Example(QMainWindow):
 
-    def __init__(self, parent=None, frame=QFrame.Box):
-        super().__init__()
-        self.initUI()
+    def __init__( self, parent=None, frame=QFrame.Box ):
+        super( ).__init__( )
+        self.initUI( )
 
-    def initUI(self):
-        self.setAttribute(Qt.WA_DeleteOnClose,True)
+    def initUI( self ):
+        self.setAttribute(Qt.WA_DeleteOnClose, True)
         # Adding Side Options in Menu
 
         exitAct = QAction(QIcon('exit.png'), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
-        self.statusBar()
+        self.statusBar( )
 
         selectiso = QAction(QIcon('exit.png'), '&Select iso', self)
         selectiso.setShortcut('Ctrl+F')
         selectiso.setStatusTip('Select iso file')
         selectiso.triggered.connect(self.openFileNameDialog)
-        self.statusBar()
+        self.statusBar( )
 
         AboutAct = QAction(QIcon('exit.png'), '&About', self)
         AboutAct.setShortcut('Ctrl+A')
         AboutAct.setStatusTip('About application')
         AboutAct.triggered.connect(self.OpenAbout)
-        self.statusBar()
+        self.statusBar( )
 
         HelpAct = QAction(QIcon('exit.png'), '&Help', self)
         HelpAct.setShortcut('Ctrl+H')
         HelpAct.setStatusTip('Help for  application')
         HelpAct.triggered.connect(self.OpenHelp)
-        self.statusBar()
+        self.statusBar( )
 
         ##################   Menubar  #############################
 
-        menubar = self.menuBar()
+        menubar = self.menuBar( )
 
         # Adding Top Menus
         fileMenu = menubar.addMenu('&File')
@@ -120,51 +123,61 @@ class Example(QMainWindow):
         ###################   MainUI   #############################
 
         # Init Base Layout
-        mlayout = QVBoxLayout()
+        mlayout = QVBoxLayout( )
         mlayout.setAlignment(Qt.AlignTop)
 
-        Toplayout = QVBoxLayout()
+        Toplayout = QVBoxLayout( )
         Toplayout.setAlignment(Qt.AlignTop)
 
         # Init Top Layout
         self.selectediso = QLabel('Iso : None')
         self.selectediso.setAlignment(Qt.AlignLeft)
-        self.OSNAMEtxt = QLineEdit()
-        self.OSVERtxt = QLineEdit()
+        self.OSNAMEtxt = QLineEdit( )
+        self.OSVERtxt = QLineEdit( )
+
+        self.Datasize = QSlider()
+        self.Datasize.setOrientation(Qt.Horizontal)
+        self.Datasize.setValue(4)
+        self.Datasize.setMaximum(32)
+        self.Datasize.setMinimum(4)
+        self.Datasize.valueChanged.connect(self.Datachange)
+
+        self.Datasizetxt = QLabel('Data Image Size: %s GB' % ('4'))
+
         Toplayout.addWidget(self.selectediso)
-        Toplayout.addWidget(QLabel('OS Name'))
+        Toplayout.addWidget(QLabel('OS Name:'))
         Toplayout.addWidget(self.OSNAMEtxt)
-        Toplayout.addWidget(QLabel('OS Version'))
+        Toplayout.addWidget(QLabel('OS Version:'))
         Toplayout.addWidget(self.OSVERtxt)
+        Toplayout.addWidget(self.Datasizetxt)
+        Toplayout.addWidget(self.Datasize)
 
-
-        Bottomlayout = QVBoxLayout()
+        Bottomlayout = QVBoxLayout( )
         Bottomlayout.setAlignment(Qt.AlignCenter)
         Bottomlayout.addWidget(QPushButton('Bottom'))
 
-        Bottommenu = QHBoxLayout()
+        Bottommenu = QHBoxLayout( )
         Bottommenu.setAlignment(Qt.AlignVCenter)
 
-        self.installprog = QProgressBar()
+        self.installprog = QProgressBar( )
         self.installprog.setValue(0)
-
 
         # Init Bottom Toolbar
         self.Installbtn = QPushButton('Start')
         self.closebtn = QPushButton('Close')
         self.closebtn.clicked.connect(self.func_quit_all_windows)
-        self.Installbtn.setEnabled(False)
+        self.Installbtn.setEnabled(True)
         self.Installbtn.clicked.connect(self.Installing)
 
         Bottommenu.addWidget(QLabel('            '))
         Bottommenu.addWidget(self.Installbtn)
         Bottommenu.addWidget(self.closebtn)
 
-        Bmenuwid = QWidget()
-        Bmenuwid.setLayout(Bottommenu)
-        Bmenuwid.setFixedHeight(60)
+        self.Bmenuwid = QWidget( )
+        self.Bmenuwid.setLayout(Bottommenu)
+        self.Bmenuwid.setFixedHeight(60)
 
-        self.Toplaywid = QWidget()
+        self.Toplaywid = QWidget( )
         self.Toplaywid.setLayout(Toplayout)
         self.Toplaywid.setFixedHeight(370)
         self.Toplaywid.setStyleSheet("background-color:#353535")
@@ -174,9 +187,9 @@ class Example(QMainWindow):
         mlayout.addWidget(QLabel(' '))
         mlayout.addWidget(QLabel(' '))
         mlayout.addWidget(self.installprog)
-        mlayout.addWidget(Bmenuwid)
+        mlayout.addWidget(self.Bmenuwid)
 
-        Mainwidget = QWidget()
+        Mainwidget = QWidget( )
         Mainwidget.setLayout(mlayout)
         self.setCentralWidget(Mainwidget)
 
@@ -185,19 +198,20 @@ class Example(QMainWindow):
         self.setFixedWidth(370)
         self.setFixedHeight(540)
         self.setWindowTitle('Androidx86 Installer')
-        self.show()
+        self.show( )
 
+    def Datachange( self ):
+        self.Datasizetxt.setText('Data Image Size: %i GB' % (self.Datasize.value()))
 
-    def Installing(self):
-        self.Installbtn.setEnabled(False)
+    def Installing( self ):
+        self.Bmenuwid.setEnabled(False)
+        for i in range(101):
+            self.installprog.setValue(i)
+            sleep(0.02)
+        self.Bmenuwid.setEnabled(True)
 
-        # Installing Code
-
-
-        self.Installbtn.setEnabled(True)
-
-    def openFileNameDialog(self):
-        options = QFileDialog.Options()
+    def openFileNameDialog( self ):
+        options = QFileDialog.Options( )
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
                                                   "Android Image Files (*.iso)", options=options)
@@ -208,25 +222,27 @@ class Example(QMainWindow):
             self.Installbtn.setEnabled(False)
             self.selectediso.setText('Iso : None')
 
-    def OpenAbout(self):
-        self.abtwin = AboutWindow()
+    def OpenAbout( self ):
+        self.abtwin = AboutWindow( )
         self.abtwin.setParent(self, Qt.Window)
-        self.abtwin.show()
+        self.abtwin.show( )
 
-    def OpenHelp(self):
-        self.hlpwin = HelpWindow()
+    def OpenHelp( self ):
+        self.hlpwin = HelpWindow( )
         self.hlpwin.setParent(self, Qt.Window)
-        self.hlpwin.show()
+        self.hlpwin.show( )
 
-    def func_quit_all_windows(self):
-        sys.exit()
+    def func_quit_all_windows( self ):
+        sys.exit( )
 
         ############################################################
 
+
 def main():
     app = QApplication(sys.argv)
-    ex = Example()
-    sys.exit(app.exec_())
+    ex = Example( )
+    sys.exit(app.exec_( ))
+
 
 if __name__ == '__main__':
-    main()
+    main( )
