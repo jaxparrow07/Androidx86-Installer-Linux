@@ -135,20 +135,28 @@ class Example(QMainWindow):
         self.OSNAMEtxt = QLineEdit( )
         self.OSVERtxt = QLineEdit( )
 
+        self.InstallationFS = QComboBox()
+        self.InstallationFS.addItems(['Ext','OtherFS'])
+        self.InstallationFS.currentIndexChanged.connect(self.changemethod)
+
         self.Datasize = QSlider()
         self.Datasize.setOrientation(Qt.Horizontal)
         self.Datasize.setValue(4)
         self.Datasize.setMaximum(32)
         self.Datasize.setMinimum(4)
         self.Datasize.valueChanged.connect(self.Datachange)
+        self.Datasize.setVisible(False)
 
         self.Datasizetxt = QLabel('Data Image Size: %s GB' % ('4'))
+        self.Datasizetxt.setVisible(False)
 
         Toplayout.addWidget(self.selectediso)
         Toplayout.addWidget(QLabel('OS Name:'))
         Toplayout.addWidget(self.OSNAMEtxt)
         Toplayout.addWidget(QLabel('OS Version:'))
         Toplayout.addWidget(self.OSVERtxt)
+        Toplayout.addWidget(QLabel('Filesystem Type:'))
+        Toplayout.addWidget(self.InstallationFS)
         Toplayout.addWidget(self.Datasizetxt)
         Toplayout.addWidget(self.Datasize)
 
@@ -199,6 +207,15 @@ class Example(QMainWindow):
         self.setFixedHeight(540)
         self.setWindowTitle('Androidx86 Installer')
         self.show( )
+
+    def changemethod( self ):
+        if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
+            self.Datasize.setVisible(False)
+            self.Datasizetxt.setVisible(False)
+        else:
+            self.Datasize.setVisible(True)
+            self.Datasizetxt.setVisible(True)
+
 
     def Datachange( self ):
         self.Datasizetxt.setText('Data Image Size: %i GB' % (self.Datasize.value()))
