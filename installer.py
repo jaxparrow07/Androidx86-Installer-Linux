@@ -6,6 +6,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from time import sleep
+from os import system
 
 # from PyQt5 import QtWidgets, uic
 helptxt = """Select an iso to be installed.
@@ -150,6 +151,14 @@ class Example(QMainWindow):
         self.Datasizetxt = QLabel('Data Image Size: %s GB' % ('4'))
         self.Datasizetxt.setVisible(False)
 
+        self.Installationpart = QComboBox()
+        system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > get_part_adv_ins.txt")
+        f = open('get_part_adv_ins.txt','r')
+        for item in f.read().split():
+            self.Installationpart.addItem(item)
+        system("rm get_part_adv_ins.txt")
+
+
         Toplayout.addWidget(self.selectediso)
         Toplayout.addWidget(QLabel('OS Name:'))
         Toplayout.addWidget(self.OSNAMEtxt)
@@ -159,6 +168,8 @@ class Example(QMainWindow):
         Toplayout.addWidget(self.InstallationFS)
         Toplayout.addWidget(self.Datasizetxt)
         Toplayout.addWidget(self.Datasize)
+        Toplayout.addWidget(QLabel('Installation Partition:'))
+        Toplayout.addWidget(self.Installationpart)
 
         Bottomlayout = QVBoxLayout( )
         Bottomlayout.setAlignment(Qt.AlignCenter)
