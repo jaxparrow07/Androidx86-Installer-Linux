@@ -217,6 +217,7 @@ class Example(QMainWindow):
         self.setCentralWidget(Mainwidget)
 
         ################### Properties ############################
+
         self.setGeometry(550, 100, 370, 540)
         self.setFixedWidth(370)
         self.setFixedHeight(540)
