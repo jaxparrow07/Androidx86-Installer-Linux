@@ -5,6 +5,7 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from time import sleep
 # from PyQt5 import QtWidgets, uic
 helptxt = """Select an iso to be installed.
 It must contain a system.img for system to be installed.
@@ -127,7 +128,7 @@ class Example(QMainWindow):
 
         # Init Top Layout
         self.selectediso = QLabel('Iso : None')
-        self.selectediso.setAlignment(Qt.AlignCenter)
+        self.selectediso.setAlignment(Qt.AlignLeft)
         self.OSNAMEtxt = QLineEdit()
         self.OSVERtxt = QLineEdit()
         Toplayout.addWidget(self.selectediso)
@@ -137,8 +138,6 @@ class Example(QMainWindow):
         Toplayout.addWidget(self.OSVERtxt)
 
 
-
-
         Bottomlayout = QVBoxLayout()
         Bottomlayout.setAlignment(Qt.AlignCenter)
         Bottomlayout.addWidget(QPushButton('Bottom'))
@@ -146,12 +145,20 @@ class Example(QMainWindow):
         Bottommenu = QHBoxLayout()
         Bottommenu.setAlignment(Qt.AlignVCenter)
 
+        self.installprog = QProgressBar()
+        self.installprog.setValue(0)
+
+
         # Init Bottom Toolbar
-        self.Installbtn = QPushButton('Install')
+        self.Installbtn = QPushButton('Start')
+        self.closebtn = QPushButton('Close')
+        self.closebtn.clicked.connect(self.func_quit_all_windows)
         self.Installbtn.setEnabled(False)
+        self.Installbtn.clicked.connect(self.Installing)
 
         Bottommenu.addWidget(QLabel('            '))
         Bottommenu.addWidget(self.Installbtn)
+        Bottommenu.addWidget(self.closebtn)
 
         Bmenuwid = QWidget()
         Bmenuwid.setLayout(Bottommenu)
@@ -162,15 +169,11 @@ class Example(QMainWindow):
         self.Toplaywid.setFixedHeight(370)
         self.Toplaywid.setStyleSheet("background-color:#353535")
 
-        self.Statustext = QLabel('NOT READY')
-        self.Statustext.setFont(QFont('Arial',15))
-        self.Statustext.setAlignment(Qt.AlignCenter)
-
         # Adding created widgets
         mlayout.addWidget(self.Toplaywid)
         mlayout.addWidget(QLabel(' '))
         mlayout.addWidget(QLabel(' '))
-        mlayout.addWidget(self.Statustext)
+        mlayout.addWidget(self.installprog)
         mlayout.addWidget(Bmenuwid)
 
         Mainwidget = QWidget()
@@ -184,6 +187,15 @@ class Example(QMainWindow):
         self.setWindowTitle('Androidx86 Installer')
         self.show()
 
+
+    def Installing(self):
+        self.Installbtn.setEnabled(False)
+
+        # Installing Code
+
+
+        self.Installbtn.setEnabled(True)
+
     def openFileNameDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -192,13 +204,9 @@ class Example(QMainWindow):
         if fileName:
             self.Installbtn.setEnabled(True)
             self.selectediso.setText('Iso : Selected')
-            self.Statustext.setText('READY')
-            self.Statustext.setStyleSheet('color:#00C7B6')
         else:
             self.Installbtn.setEnabled(False)
             self.selectediso.setText('Iso : None')
-            self.Statustext.setText('NOT READY')
-            self.Statustext.setStyleSheet('color:#FFFFFF')
 
     def OpenAbout(self):
         self.abtwin = AboutWindow()
