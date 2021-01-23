@@ -15,7 +15,7 @@ Make sure the iso is not broken and downloaded correctly.
 
 Install to a specific partition."""
 
-version_name = 'v0.02 Alpha'
+version_name = 'v0.10 Alpha'
 
 
 class HelpWindow(QWidget):
@@ -57,8 +57,8 @@ class AboutWindow(QWidget):
 
         layout.addWidget(version_app)
 
-        SG_Name = QLabel('Made by SupremeGamers')
-        SG_Name.setFont(QFont('Arial', 13))
+        SG_Name = QLabel('Made with time & passion by SupremeGamers')
+        SG_Name.setFont(QFont('Arial', 11))
 
         layout.addWidget(SG_Name)
         layout.addWidget(QLabel(' '))
@@ -152,11 +152,15 @@ class Example(QMainWindow):
         self.Datasizetxt.setVisible(False)
 
         self.Installationpart = QComboBox()
+
+        # Rough Code to test.. Will be changed later
         system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > get_part_adv_ins.txt")
         f = open('get_part_adv_ins.txt','r')
         for item in f.read().split():
             self.Installationpart.addItem(item)
         system("rm get_part_adv_ins.txt")
+
+        # End of sample code
 
 
         Toplayout.addWidget(self.selectediso)
@@ -233,9 +237,13 @@ class Example(QMainWindow):
 
     def Installing( self ):
         self.Bmenuwid.setEnabled(False)
+
+        # Rough Code to test. Will be changed later
         for i in range(101):
             self.installprog.setValue(i)
             sleep(0.02)
+        # End of test code
+
         self.Bmenuwid.setEnabled(True)
 
     def openFileNameDialog( self ):
