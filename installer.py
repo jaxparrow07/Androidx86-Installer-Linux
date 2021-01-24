@@ -109,6 +109,7 @@ class Example(QMainWindow):
         self.statusBar( )
 
         self.Isonamevar = 'None'
+        self.isExtracting = True
 
         ##################   Menubar  #############################
 
@@ -129,8 +130,8 @@ class Example(QMainWindow):
         mlayout = QVBoxLayout( )
         mlayout.setAlignment(Qt.AlignTop)
 
-        Toplayout = QVBoxLayout( )
-        Toplayout.setAlignment(Qt.AlignTop)
+        self.Toplayout = QVBoxLayout( )
+        self.Toplayout.setAlignment(Qt.AlignTop)
 
         # Init Top Layout
         self.selectediso = QLabel('Iso : None')
@@ -165,18 +166,28 @@ class Example(QMainWindow):
 
         # End of sample code
 
+        self.Installinglayout = QVBoxLayout()
+        self.Installinglayout.setAlignment(Qt.AlignTop)
+        self.Installinglayout.addWidget(QLabel('OS Name:'))
+        self.Installinglayout.addWidget(self.OSNAMEtxt)
+        self.Installinglayout.addWidget(QLabel('OS Version:'))
+        self.Installinglayout.addWidget(self.OSVERtxt)
 
-        Toplayout.addWidget(self.selectediso)
-        Toplayout.addWidget(QLabel('OS Name:'))
-        Toplayout.addWidget(self.OSNAMEtxt)
-        Toplayout.addWidget(QLabel('OS Version:'))
-        Toplayout.addWidget(self.OSVERtxt)
-        Toplayout.addWidget(QLabel('Filesystem Type:'))
-        Toplayout.addWidget(self.InstallationFS)
-        Toplayout.addWidget(self.Datasizetxt)
-        Toplayout.addWidget(self.Datasize)
-        Toplayout.addWidget(QLabel('Installation Partition:'))
-        Toplayout.addWidget(self.Installationpart)
+        self.Installingframe = QFrame()
+        self.Installingframe.setLayout(self.Installinglayout)
+        self.Installingframe.setFrameShadow(QFrame.Raised)
+        self.Installingframe.setFrameShape(QFrame.StyledPanel)
+        self.Installingframe.setVisible(False)
+        self.Installingframe.setFixedHeight(370)
+
+
+        self.Toplayout.addWidget(self.selectediso)
+        self.Toplayout.addWidget(QLabel('Filesystem Type:'))
+        self.Toplayout.addWidget(self.InstallationFS)
+        self.Toplayout.addWidget(self.Datasizetxt)
+        self.Toplayout.addWidget(self.Datasize)
+        self.Toplayout.addWidget(QLabel('Installation Partition:'))
+        self.Toplayout.addWidget(self.Installationpart)
 
         Bottomlayout = QVBoxLayout( )
         Bottomlayout.setAlignment(Qt.AlignCenter)
@@ -189,11 +200,11 @@ class Example(QMainWindow):
         self.installprog.setValue(0)
 
         # Init Bottom Toolbar
-        self.Installbtn = QPushButton('Start')
+        self.Installbtn = QPushButton('Next')
         self.closebtn = QPushButton('Close')
         self.closebtn.clicked.connect(self.func_quit_all_windows)
         self.Installbtn.setEnabled(False)
-        self.Installbtn.clicked.connect(self.Installing)
+        self.Installbtn.clicked.connect(self.Extracting)
 
         Bottommenu.addWidget(QLabel('            '))
         Bottommenu.addWidget(self.Installbtn)
@@ -207,13 +218,12 @@ class Example(QMainWindow):
         self.rightFrame = QFrame()
         self.rightFrame.setFrameShape(QFrame.StyledPanel)
         self.rightFrame.setFrameShadow(QFrame.Raised)
-        self.rightFrame.setLayout(Toplayout)
+        self.rightFrame.setLayout(self.Toplayout)
         self.rightFrame.setFixedHeight(370)
 
         # Adding created widgets
         mlayout.addWidget(self.rightFrame)
-        mlayout.addWidget(QLabel(' '))
-        mlayout.addWidget(QLabel(' '))
+        mlayout.addWidget(self.Installingframe)
         mlayout.addWidget(self.installprog)
         mlayout.addWidget(self.Bmenuwid)
 
@@ -242,16 +252,31 @@ class Example(QMainWindow):
     def Datachange( self ):
         self.Datasizetxt.setText('Data Image Size: %i GB' % (self.Datasize.value()))
 
-    def Installing( self ):
-        self.Bmenuwid.setEnabled(False)
+    def Extracting(self):
+        if self.isExtracting == True:
 
-        # Rough Code to test. Will be changed later
-        for i in range(101):
-            self.installprog.setValue(i)
-            sleep(0.02)
-        # End of test code
+            print("Extracting")
+            # Do Extracting
+            self.Bmenuwid.setEnabled(False)
 
-        self.Bmenuwid.setEnabled(True)
+            # Rough Code to test. Will be changed later
+            for i in range(101):
+                self.installprog.setValue(i)
+                sleep(0.02)
+            # End of test code
+
+            self.Bmenuwid.setEnabled(True)
+            self.rightFrame.setVisible(False)
+            self.Installingframe.setVisible(True)
+            self.isExtracting = False
+
+        else:
+            # Installing Code
+            print("Installing")
+            for i in range(101):
+                self.installprog.setValue(i)
+                sleep(0.05)
+
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
