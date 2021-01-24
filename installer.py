@@ -209,7 +209,6 @@ class Example(QMainWindow):
         self.rightFrame.setFixedHeight(370)
 
         # Adding created widgets
-        # mlayout.addWidget(self.Toplaygrid)
         mlayout.addWidget(self.rightFrame)
         mlayout.addWidget(QLabel(' '))
         mlayout.addWidget(QLabel(' '))
@@ -259,7 +258,10 @@ class Example(QMainWindow):
                                                   "Android Image Files (*.iso)", options=options)
         if fileName:
             self.Installbtn.setEnabled(True)
-            self.selectediso.setText('Iso : Selected')
+            if len(fileName) > 40:
+                self.selectediso.setText('Iso : '+fileName[0:40]+'...')
+            else:
+                self.selectediso.setText('Iso : %s' % (fileName))
         else:
             self.Installbtn.setEnabled(False)
             self.selectediso.setText('Iso : None')
