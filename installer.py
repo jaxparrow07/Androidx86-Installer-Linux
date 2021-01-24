@@ -5,6 +5,9 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+import isoparser
+import configparser
+# Sample modules for test code
 from time import sleep
 from os import system
 
@@ -20,7 +23,7 @@ version_name = 'v0.10 Alpha'
 
 class HelpWindow(QWidget):
     def __init__( self ):
-        super( ).__init__( )
+        super().__init__()
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignTop)
@@ -255,15 +258,25 @@ class Example(QMainWindow):
     def Extracting(self):
         if self.isExtracting == True:
 
+            # system("rm iso/*")
             print("Extracting")
-            # Do Extracting
             self.Bmenuwid.setEnabled(False)
 
             # Rough Code to test. Will be changed later
-            for i in range(101):
-                self.installprog.setValue(i)
-                sleep(0.02)
+            # system("7z x '%s' -oiso" % (self.Isonamevar))
             # End of test code
+            print("Done")
+
+            config = configparser.ConfigParser( )
+            config.read('iso/windows/config.ini')
+
+            MetaOSName = config.get('META-DATA', 'NAME')
+            MetaOSVer = config.get('META-DATA', 'VERSION')
+
+            if MetaOSName[0] == '"':
+                self.OSNAMEtxt.setText(MetaOSName[1:len(MetaOSName)-1])
+            if MetaOSVer[0] == '"':
+                self.OSVERtxt.setText(MetaOSVer[1:len(MetaOSVer)-1])
 
             self.Bmenuwid.setEnabled(True)
             self.rightFrame.setVisible(False)
@@ -290,6 +303,7 @@ class Example(QMainWindow):
                 self.selectediso.setText('Iso : '+fileName[0:40]+'...')
             else:
                 self.selectediso.setText('Iso : %s' % (fileName))
+
         else:
             self.Installbtn.setEnabled(False)
             self.selectediso.setText('Iso : None')
