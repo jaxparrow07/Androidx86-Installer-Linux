@@ -258,16 +258,16 @@ class Example(QMainWindow):
     def Extracting(self):
         if self.isExtracting == True:
 
-            # system("rm iso/*")
-            print("Extracting")
             self.Bmenuwid.setEnabled(False)
+            # system("rm iso/*")
+            #print("Extracting")
 
             # Rough Code to test. Will be changed later
             # system("7z x '%s' -oiso" % (self.Isonamevar))
             # End of test code
-            print("Done")
+            #print("Done")
 
-            config = configparser.ConfigParser( )
+            config = configparser.ConfigParser()
             config.read('iso/windows/config.ini')
 
             MetaOSName = config.get('META-DATA', 'NAME')
@@ -275,8 +275,12 @@ class Example(QMainWindow):
 
             if MetaOSName[0] == '"':
                 self.OSNAMEtxt.setText(MetaOSName[1:len(MetaOSName)-1])
+            else:
+                self.OSNAMEtxt.setText(MetaOSName)
             if MetaOSVer[0] == '"':
                 self.OSVERtxt.setText(MetaOSVer[1:len(MetaOSVer)-1])
+            else:
+                self.OSVERtxt.setText(MetaOSVer)
 
             self.Bmenuwid.setEnabled(True)
             self.rightFrame.setVisible(False)
