@@ -108,6 +108,8 @@ class Example(QMainWindow):
         HelpAct.triggered.connect(self.OpenHelp)
         self.statusBar( )
 
+        self.Isonamevar = 'None'
+
         ##################   Menubar  #############################
 
         menubar = self.menuBar( )
@@ -190,7 +192,7 @@ class Example(QMainWindow):
         self.Installbtn = QPushButton('Start')
         self.closebtn = QPushButton('Close')
         self.closebtn.clicked.connect(self.func_quit_all_windows)
-        self.Installbtn.setEnabled(True)
+        self.Installbtn.setEnabled(False)
         self.Installbtn.clicked.connect(self.Installing)
 
         Bottommenu.addWidget(QLabel('            '))
@@ -258,6 +260,7 @@ class Example(QMainWindow):
                                                   "Android Image Files (*.iso)", options=options)
         if fileName:
             self.Installbtn.setEnabled(True)
+            self.Isonamevar = fileName
             if len(fileName) > 40:
                 self.selectediso.setText('Iso : '+fileName[0:40]+'...')
             else:
@@ -265,6 +268,7 @@ class Example(QMainWindow):
         else:
             self.Installbtn.setEnabled(False)
             self.selectediso.setText('Iso : None')
+            self.Isonamevar = 'None'
 
     def OpenAbout( self ):
         self.abtwin = AboutWindow( )
