@@ -5,7 +5,6 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-import isoparser
 import configparser
 # Sample modules for test code
 from time import sleep
@@ -289,7 +288,6 @@ class Example(QMainWindow):
 
         else:
             # Installing Code
-            print("Installing")
             for i in range(101):
                 self.installprog.setValue(i)
                 sleep(0.05)
