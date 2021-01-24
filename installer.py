@@ -154,6 +154,7 @@ class Example(QMainWindow):
         self.Installationpart = QComboBox()
 
         # Rough Code to test.. Will be changed later
+
         system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > get_part_adv_ins.txt")
         f = open('get_part_adv_ins.txt','r')
         for item in f.read().split():
@@ -200,13 +201,16 @@ class Example(QMainWindow):
         self.Bmenuwid.setLayout(Bottommenu)
         self.Bmenuwid.setFixedHeight(60)
 
-        self.Toplaywid = QWidget( )
-        self.Toplaywid.setLayout(Toplayout)
-        self.Toplaywid.setFixedHeight(370)
-        self.Toplaywid.setStyleSheet("background-color:#353535")
+
+        self.rightFrame = QFrame()
+        self.rightFrame.setFrameShape(QFrame.StyledPanel)
+        self.rightFrame.setFrameShadow(QFrame.Raised)
+        self.rightFrame.setLayout(Toplayout)
+        self.rightFrame.setFixedHeight(370)
 
         # Adding created widgets
-        mlayout.addWidget(self.Toplaywid)
+        # mlayout.addWidget(self.Toplaygrid)
+        mlayout.addWidget(self.rightFrame)
         mlayout.addWidget(QLabel(' '))
         mlayout.addWidget(QLabel(' '))
         mlayout.addWidget(self.installprog)
@@ -223,6 +227,7 @@ class Example(QMainWindow):
         self.setFixedHeight(540)
         self.setWindowTitle('Androidx86 Installer')
         self.show( )
+
 
     def changemethod( self ):
         if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
