@@ -6,9 +6,11 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import configparser
+from shutil import copyfile
+from io import BytesIO
 # Sample modules for test code
 from time import sleep
-from os import system
+import os
 
 # from PyQt5 import QtWidgets, uic
 helptxt = """Select an iso to be installed.
@@ -160,11 +162,11 @@ class Example(QMainWindow):
 
         # Rough Code to test.. Will be changed later
 
-        system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > get_part_adv_ins.txt")
+        os.system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > get_part_adv_ins.txt")
         f = open('get_part_adv_ins.txt','r')
         for item in f.read().split():
             self.Installationpart.addItem(item)
-        system("rm get_part_adv_ins.txt")
+        os.system("rm get_part_adv_ins.txt")
 
         # End of sample code
 
@@ -205,7 +207,7 @@ class Example(QMainWindow):
         self.Installbtn = QPushButton('Next')
         self.closebtn = QPushButton('Close')
         self.closebtn.clicked.connect(self.func_quit_all_windows)
-        self.Installbtn.setEnabled(False)
+        self.Installbtn.setEnabled(True)
         self.Installbtn.clicked.connect(self.Extracting)
 
         Bottommenu.addWidget(QLabel('            '))
@@ -258,11 +260,11 @@ class Example(QMainWindow):
         if self.isExtracting == True:
 
             self.Bmenuwid.setEnabled(False)
-            # system("rm iso/*")
+            # os.system("rm iso/*")
             #print("Extracting")
 
             # Rough Code to test. Will be changed later
-            # system("7z x '%s' -oiso" % (self.Isonamevar))
+            # os.system("7z x '%s' -oiso" % (self.Isonamevar))
             # End of test code
             #print("Done")
 
@@ -288,10 +290,21 @@ class Example(QMainWindow):
 
         else:
             # Installing Code
-            for i in range(101):
-                self.installprog.setValue(i)
-                sleep(0.05)
 
+            file = 'FILENAME'
+            fsize = int(os.path.getsize(file))
+            new = 'dest/system.sfs'
+            self.installprog.setMaximum(fsize)
+            with open(file, 'rb') as f:
+                with open(new, 'ab') as n:
+                    buffer = bytearray()
+                    while True:
+                        buf = f.read(8192)
+                        n.write(buf)
+                        if len(buf) == 0:
+                            break
+                        buffer += buf
+                        self.installprog.setValue(len(buffer))
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
