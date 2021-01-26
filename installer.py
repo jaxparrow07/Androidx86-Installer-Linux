@@ -307,13 +307,13 @@ class Example(QMainWindow):
         else:
             # Installing Code
 
-            files = ['NEWFILE', 'NEWFILE2']
+            files = ['NEWFILE', 'NEWFILE1','NEWFILE2']
             to_increase = 100 / len(files)
             for file in files:
                 fsize = int(os.path.getsize(file))
-                new = 'dest/'+file
+                new = 'dest/' + file
                 self.singlefileprog.setValue(0)
-                self.currentfilename('Current file : %s' %(file))
+                self.currentfilename.setText('Current file : %s' %(file))
                 self.singlefileprog.setMaximum(fsize)
                 with open(file, 'rb') as f:
                     with open(new, 'ab') as n:
@@ -325,7 +325,9 @@ class Example(QMainWindow):
                                 break
                             buffer += buf
                             self.singlefileprog.setValue(len(buffer))
-                self.installprog.setValue(self.installprog.value()+to_increase)
+                self.installprog.setValue(self.installprog.value() + int(to_increase))
+            if self.installprog.value() != 100:
+                self.installprog.setValue(100)
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
