@@ -170,12 +170,28 @@ class Example(QMainWindow):
 
         # End of sample code
 
+        self.singlefileprog = QProgressBar()
+        self.singlefileprog.setValue(0)
+        self.currentfilename = QLabel('Current File : None')
+        self.currentfilename.setAlignment(Qt.AlignLeft)
+
+        instspacelay = QVBoxLayout()
+        instspacelay.setAlignment(Qt.AlignTop)
+        instspacelay.addWidget(QLabel('Boot Flags: (leave if you don\'t know)'))
+
+        self.instspace = QWidget()
+        self.instspace.setLayout(instspacelay)
+        self.instspace.setFixedHeight(180)
+
         self.Installinglayout = QVBoxLayout()
         self.Installinglayout.setAlignment(Qt.AlignTop)
         self.Installinglayout.addWidget(QLabel('OS Name:'))
         self.Installinglayout.addWidget(self.OSNAMEtxt)
         self.Installinglayout.addWidget(QLabel('OS Version:'))
         self.Installinglayout.addWidget(self.OSVERtxt)
+        self.Installinglayout.addWidget(self.instspace)
+        self.Installinglayout.addWidget(self.currentfilename)
+        self.Installinglayout.addWidget(self.singlefileprog)
 
         self.Installingframe = QFrame()
         self.Installingframe.setLayout(self.Installinglayout)
@@ -291,20 +307,25 @@ class Example(QMainWindow):
         else:
             # Installing Code
 
-            file = 'FILENAME'
-            fsize = int(os.path.getsize(file))
-            new = 'dest/system.sfs'
-            self.installprog.setMaximum(fsize)
-            with open(file, 'rb') as f:
-                with open(new, 'ab') as n:
-                    buffer = bytearray()
-                    while True:
-                        buf = f.read(8192)
-                        n.write(buf)
-                        if len(buf) == 0:
-                            break
-                        buffer += buf
-                        self.installprog.setValue(len(buffer))
+            files = ['NEWFILE', 'NEWFILE2']
+            to_increase = 100 / len(files)
+            for file in files:
+                fsize = int(os.path.getsize(file))
+                new = 'dest/'+file
+                self.singlefileprog.setValue(0)
+                self.currentfilename('Current file : %s' %(file))
+                self.singlefileprog.setMaximum(fsize)
+                with open(file, 'rb') as f:
+                    with open(new, 'ab') as n:
+                        buffer = bytearray()
+                        while True:
+                            buf = f.read(8192)
+                            n.write(buf)
+                            if len(buf) == 0:
+                                break
+                            buffer += buf
+                            self.singlefileprog.setValue(len(buffer))
+                self.installprog.setValue(self.installprog.value()+to_increase)
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
