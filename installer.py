@@ -19,7 +19,7 @@ Make sure the iso is not broken and downloaded correctly.
 
 Install to a specific partition."""
 
-version_name = 'v0.10 Alpha'
+version_name = 'v0.51.0 Beta'
 
 
 class HelpWindow(QWidget):
