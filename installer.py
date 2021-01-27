@@ -47,7 +47,7 @@ class AboutWindow(QWidget):
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
         layout.addWidget(self.widget)
-        pixmap = QPixmap('app/sg_logo.png')
+        pixmap = QPixmap('app/img/sg_logo.png')
         pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio)
         Pixmap_label = QLabel(self)
         Pixmap_label.setPixmap(pixmap)
@@ -276,13 +276,10 @@ class Example(QMainWindow):
         if self.isExtracting == True:
 
             self.Bmenuwid.setEnabled(False)
-            # os.system("rm iso/*")
-            #print("Extracting")
-
+            print("Extracting")
             # Rough Code to test. Will be changed later
-            # os.system("7z x '%s' -oiso" % (self.Isonamevar))
-            # End of test code
-            #print("Done")
+            os.system("7z x '%s' -oiso" % (self.Isonamevar))
+            print("Done")
 
             config = configparser.ConfigParser()
             config.read('iso/windows/config.ini')
@@ -307,15 +304,29 @@ class Example(QMainWindow):
         else:
             # Installing Code
 
-            files = ['NEWFILE', 'NEWFILE1','NEWFILE2']
+            files = ['initrd.img', 'ramdisk.img','kernel','install.img','system.sfs']
             to_increase = 100 / len(files)
+
+            partition = self.Installationpart.itemText(self.Installationpart.currentIndex())
+
+            OS_NAME = self.OSNAMEtxt.text() + '_' + self.OSVERtxt.text()
+            OS_NAME.replace(' ','_')
+            print(OS_NAME)
+
+            os.system('umount '+partition)
+            os.mkdir('/mnt/tmpadvin')
+            os.system('mount %s /mnt/tmpadvin' %(partition))
+            os.mkdir('/mnt/tmpadvin/'+OS_NAME)
+
+            DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
+
             for file in files:
-                fsize = int(os.path.getsize(file))
-                new = 'dest/' + file
+                fsize = int(os.path.getsize('iso/'+file))
+                new = DESTINATION + file
                 self.singlefileprog.setValue(0)
                 self.currentfilename.setText('Current file : %s' %(file))
                 self.singlefileprog.setMaximum(fsize)
-                with open(file, 'rb') as f:
+                with open('iso/'+file, 'rb') as f:
                     with open(new, 'ab') as n:
                         buffer = bytearray()
                         while True:
@@ -328,6 +339,12 @@ class Example(QMainWindow):
                 self.installprog.setValue(self.installprog.value() + int(to_increase))
             if self.installprog.value() != 100:
                 self.installprog.setValue(100)
+
+            if self.InstallationFS.itemText(self.InstallationFS.currentIndex( )) == 'Ext':
+                os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
+            os.system('umount /mnt/tmpadvin')
+            # Removed this since, This is dangerous
+            # os.rmdir('/mnt/tmpadvin')
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
