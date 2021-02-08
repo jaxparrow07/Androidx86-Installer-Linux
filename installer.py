@@ -276,9 +276,10 @@ class Example(QMainWindow):
         if self.isExtracting == True:
 
             self.Bmenuwid.setEnabled(False)
+            os.rmdir('iso')
+            os.mkdir('iso')
             print("Extracting")
-            # Rough Code to test. Will be changed later
-            os.system("7z x '%s' -oiso" % (self.Isonamevar))
+            os.system("./app/bin/garca x '%s' -oiso" % (self.Isonamevar))
             print("Done")
 
             config = configparser.ConfigParser()
@@ -291,6 +292,7 @@ class Example(QMainWindow):
                 self.OSNAMEtxt.setText(MetaOSName[1:len(MetaOSName)-1])
             else:
                 self.OSNAMEtxt.setText(MetaOSName)
+
             if MetaOSVer[0] == '"':
                 self.OSVERtxt.setText(MetaOSVer[1:len(MetaOSVer)-1])
             else:
@@ -313,9 +315,8 @@ class Example(QMainWindow):
             OS_NAME.replace(' ','_')
             print(OS_NAME)
 
-            os.system('umount '+partition)
-            os.mkdir('/mnt/tmpadvin')
-            os.system('mount %s /mnt/tmpadvin' %(partition))
+            os.system('sudo ./app/bin/unmounter '+ partition)
+            os.system('sudo ./app/bin/mounter' + partition)
             os.mkdir('/mnt/tmpadvin/'+OS_NAME)
 
             DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
@@ -342,9 +343,10 @@ class Example(QMainWindow):
 
             if self.InstallationFS.itemText(self.InstallationFS.currentIndex( )) == 'Ext':
                 os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
-            os.system('umount /mnt/tmpadvin')
-            # Removed this since, This is dangerous
-            # os.rmdir('/mnt/tmpadvin')
+                os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
+
+            os.system('sudo ./app/bin/unmounter')
+
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
