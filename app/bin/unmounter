@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+
+# Shell Script for Android Installer x86
+# Copyright (C) 2021
+# Must be run as root
+
+if [[ -d /mnt/tmpadvin/ ]];then
+  umount /mnt/tmpadvin
+  rm /mnt/tmpadvin -r
+fi
