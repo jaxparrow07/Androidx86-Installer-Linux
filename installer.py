@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
 
 import sys
-# from PyQt5.QtCore import *
+from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import configparser
-from shutil import copyfile
-from io import BytesIO
-# Sample modules for test code
-from time import sleep
 import os
 from elevate import elevate
 
-elevate(graphical=False)
-os.system('whoami')
-os.system('pwd')
+# elevate(graphical=False)
+
 # from PyQt5 import QtWidgets, uic
 helptxt = """Select an iso to be installed.
 It must contain a system.img for system to be installed.
@@ -23,7 +18,7 @@ Make sure the iso is not broken and downloaded correctly.
 
 Install to a specific partition."""
 
-version_name = 'v0.51.0 Beta'
+version_name = 'v0.74.0 Beta'
 
 
 class HelpWindow(QWidget):
@@ -166,11 +161,11 @@ class Example(QMainWindow):
 
         # Rough Code to test.. Will be changed later
 
-        os.system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > get_part_adv_ins.txt")
-        f = open('get_part_adv_ins.txt','r')
+        os.system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > partlist.txt")
+        f = open('partlist.txt','r')
         for item in f.read().split():
             self.Installationpart.addItem(item)
-        os.system("rm get_part_adv_ins.txt")
+        os.system("rm partlist.txt")
 
         # End of sample code
 
@@ -280,7 +275,7 @@ class Example(QMainWindow):
         if self.isExtracting == True:
 
             self.Bmenuwid.setEnabled(False)
-            os.system('./app/bin/cleanup')
+            os.system('app/bin/cleanup')
             os.system("7z x '%s' -oiso -aoa" % (self.Isonamevar))
 
             config = configparser.ConfigParser()
@@ -316,8 +311,8 @@ class Example(QMainWindow):
             OS_NAME.replace(' ','_')
             print(OS_NAME)
 
-            os.system('sudo ./app/bin/unmounter '+ partition)
-            os.system('sudo ./app/bin/mounter' + partition)
+            os.system('app/bin/unmounter '+ partition)
+            os.system('app/bin/mounter ' + partition)
             os.mkdir('/mnt/tmpadvin/'+OS_NAME)
 
             DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
@@ -346,7 +341,7 @@ class Example(QMainWindow):
                 os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
                 os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
 
-            os.system('sudo ./app/bin/unmounter')
+            os.system('app/bin/unmounter')
 
 
     def openFileNameDialog( self ):
@@ -357,8 +352,8 @@ class Example(QMainWindow):
         if fileName:
             self.Installbtn.setEnabled(True)
             self.Isonamevar = fileName
-            if len(fileName) > 40:
-                self.selectediso.setText('Iso : '+fileName[0:40]+'...')
+            if len(fileName) > 35:
+                self.selectediso.setText('Iso : %s... (%0.2f GB)' % (fileName[0:35], os.path.getsize(fileName) / 1024 / 1024 / 1024))
             else:
                 self.selectediso.setText('Iso : %s' % (fileName))
 
