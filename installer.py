@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import configparser
 import os
-import time
+from subprocess import CalledProcessError, check_output
 
 helptxt = """Select an iso to be installed.
 It must contain a system.img for system to be installed.
@@ -289,13 +289,9 @@ class Example(QMainWindow):
 
     def Extracting(self):
         if self.isExtracting == True:
-
-            self.extr = Extracting( )
-            self.extr.setParent(self, Qt.Window)
-            self.extr.show()
-
             self.Bmenuwid.setEnabled(False)
             os.system('app/bin/cleanup')
+
             os.system("7z x '%s' -oiso -aoa" % (self.Isonamevar))
             self.extr.close()
 
@@ -334,10 +330,11 @@ class Example(QMainWindow):
 
             OS_NAME = self.OSNAMEtxt.text() + '_' + self.OSVERtxt.text()
             OS_NAME.replace(' ','_')
-            print(OS_NAME)
 
-            os.system('app/bin/unmounter '+ partition)
+            os.system('app/bin/unmounter ' + partition)
             os.system('app/bin/mounter ' + partition)
+
+
             os.mkdir('/mnt/tmpadvin/'+OS_NAME)
 
             DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
