@@ -11,7 +11,11 @@ from io import BytesIO
 # Sample modules for test code
 from time import sleep
 import os
+from elevate import elevate
 
+elevate(graphical=False)
+os.system('whoami')
+os.system('pwd')
 # from PyQt5 import QtWidgets, uic
 helptxt = """Select an iso to be installed.
 It must contain a system.img for system to be installed.
@@ -223,7 +227,7 @@ class Example(QMainWindow):
         self.Installbtn = QPushButton('Next')
         self.closebtn = QPushButton('Close')
         self.closebtn.clicked.connect(self.func_quit_all_windows)
-        self.Installbtn.setEnabled(True)
+        self.Installbtn.setEnabled(False)
         self.Installbtn.clicked.connect(self.Extracting)
 
         Bottommenu.addWidget(QLabel('            '))
@@ -276,11 +280,8 @@ class Example(QMainWindow):
         if self.isExtracting == True:
 
             self.Bmenuwid.setEnabled(False)
-            os.rmdir('iso')
-            os.mkdir('iso')
-            print("Extracting")
-            os.system("./app/bin/garca x '%s' -oiso" % (self.Isonamevar))
-            print("Done")
+            os.system('./app/bin/cleanup')
+            os.system("7z x '%s' -oiso -aoa" % (self.Isonamevar))
 
             config = configparser.ConfigParser()
             config.read('iso/windows/config.ini')
