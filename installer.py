@@ -290,10 +290,20 @@ class Example(QMainWindow):
     def Extracting(self):
         if self.isExtracting == True:
             self.Bmenuwid.setEnabled(False)
-            os.system('app/bin/cleanup')
+            # os.system('app/bin/cleanup')
+
+            try:
+                output = check_output(["app/bin/cleanup", str(os.getcwd()+'/iso')])
+                returncode = 0
+            except CalledProcessError as e:
+                output = e.output
+                returncode = e.returncode
+
+            if returncode != 0:
+                print("[!] Adv-Installer : Process Cleanup Failed")
+                exit(1)
 
             os.system("7z x '%s' -oiso -aoa" % (self.Isonamevar))
-            self.extr.close()
 
             config = configparser.ConfigParser()
             config.read('iso/windows/config.ini')
@@ -331,8 +341,32 @@ class Example(QMainWindow):
             OS_NAME = self.OSNAMEtxt.text() + '_' + self.OSVERtxt.text()
             OS_NAME.replace(' ','_')
 
-            os.system('app/bin/unmounter ' + partition)
-            os.system('app/bin/mounter ' + partition)
+            # os.system('app/bin/unmounter ' + partition)
+
+            try:
+                output = check_output(["app/bin/unmounter", partition])
+                returncode = 0
+            except CalledProcessError as e:
+                output = e.output
+                returncode = e.returncode
+
+            if returncode != 0:
+                print("[!] Adv-Installer : Process Unmount Failed")
+                exit(1)
+
+
+            # os.system('app/bin/mounter ' + partition)
+
+            try:
+                output = check_output(["app/bin/mounter", partition])
+                returncode = 0
+            except CalledProcessError as e:
+                output = e.output
+                returncode = e.returncode
+
+            if returncode != 0:
+                print("[!] Adv-Installer : Process Mount Failed")
+                exit(1)
 
 
             os.mkdir('/mnt/tmpadvin/'+OS_NAME)
@@ -363,7 +397,18 @@ class Example(QMainWindow):
                 os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
                 os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
 
-            os.system('app/bin/unmounter')
+            # os.system('app/bin/unmounter')
+
+            try:
+                output = check_output(["app/bin/unmounter", ])
+                returncode = 0
+            except CalledProcessError as e:
+                output = e.output
+                returncode = e.returncode
+
+            if returncode != 0:
+                print("[!] Adv-Installer : Process Unmount Failed")
+                exit(1)
 
 
     def openFileNameDialog( self ):
