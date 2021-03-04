@@ -87,25 +87,25 @@ class Example(QMainWindow):
         self.setAttribute(Qt.WA_DeleteOnClose, True)
         # Adding Side Options in Menu
 
-        exitAct = QAction(QIcon('exit.png'), '&Exit', self)
+        exitAct = QAction(QIcon('app/img/exit.png'), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
         self.statusBar( )
 
-        selectiso = QAction(QIcon('exit.png'), '&Select iso', self)
+        selectiso = QAction(QIcon('app/img/iso.png'), '&Select iso', self)
         selectiso.setShortcut('Ctrl+F')
         selectiso.setStatusTip('Select iso file')
         selectiso.triggered.connect(self.openFileNameDialog)
         self.statusBar( )
 
-        AboutAct = QAction(QIcon('exit.png'), '&About', self)
+        AboutAct = QAction(QIcon('app/img/about.png'), '&About', self)
         AboutAct.setShortcut('Ctrl+A')
         AboutAct.setStatusTip('About application')
         AboutAct.triggered.connect(self.OpenAbout)
         self.statusBar( )
 
-        HelpAct = QAction(QIcon('exit.png'), '&Help', self)
+        HelpAct = QAction(QIcon('app/img/help.png'), '&Help', self)
         HelpAct.setShortcut('Ctrl+H')
         HelpAct.setStatusTip('Help for  application')
         HelpAct.triggered.connect(self.OpenHelp)
@@ -256,6 +256,10 @@ class Example(QMainWindow):
         self.setFixedWidth(370)
         self.setFixedHeight(540)
         self.setWindowTitle('Androidx86 Installer')
+        pixmap = QPixmap('app/img/sg_logo.png')
+        pixmap = pixmap.scaled(20, 20, Qt.KeepAspectRatio)
+        icon = QIcon(pixmap)
+        self.setWindowIcon(icon)
         self.show( )
 
 
@@ -346,7 +350,6 @@ class Example(QMainWindow):
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
-        options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
                                                   "Android Image Files (*.iso)", options=options)
         if fileName:
