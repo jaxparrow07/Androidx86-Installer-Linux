@@ -7,12 +7,12 @@
 if [[ -z $1 ]];then
 
   if [[ -d /mnt/tmpadvin/ ]];then
-    umount /mnt/tmpadvin
-    rm /mnt/tmpadvin -r
+    pkexec umount /mnt/tmpadvin
+    pkexec rm /mnt/tmpadvin -r
   fi
 
   echo "[*] Adv-Installer : Unmounting"
 else
-  umount $1
+  pkexec umount $1
   echo "[*] Adv-Installer : Unmounting $1"
 fi

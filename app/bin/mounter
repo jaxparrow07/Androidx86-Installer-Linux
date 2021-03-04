@@ -5,7 +5,7 @@
 # Must be run as root
 
 if [[ ! -d /mnt/tmpadvin/ ]];then
-  mkdir /mnt/tmpadvin/
+  pkexec mkdir /mnt/tmpadvin/
 fi
 echo "[*] Adv-Installer : Mounting $1"
-mount "$1" "/mnt/tmpadvin"
+pkexec mount "$1" "/mnt/tmpadvin"
