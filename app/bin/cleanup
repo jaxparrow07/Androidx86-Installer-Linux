@@ -2,9 +2,9 @@
 
 # Shell Script for Android Installer x86
 # Copyright (C) 2021
-
-if [[ -d ../../iso ]];then
-  pkexec rm ../../iso -r
+echo "$1"
+if [[ -d "$1/" ]];then
+  pkexec rm "$1/" -r
 else
-  mkdir ../../iso
+  mkdir "$1"
 fi
