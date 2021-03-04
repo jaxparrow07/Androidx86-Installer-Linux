@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 
 import sys
-from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import configparser
 import os
-from elevate import elevate
+import time
 
-# elevate(graphical=False)
-
-# from PyQt5 import QtWidgets, uic
 helptxt = """Select an iso to be installed.
 It must contain a system.img for system to be installed.
 Make sure the iso is not broken and downloaded correctly.
@@ -39,6 +35,23 @@ class HelpWindow(QWidget):
         self.setFixedWidth(330)
         self.setFixedHeight(330)
 
+class Extracting(QWidget):
+    def __init__( self ):
+        super().__init__()
+        self.widget = QWidget(self)
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignTop)
+        helptext = QLabel("Extracting")
+        helptext.adjustSize( )
+        helptext.setFixedWidth(330)
+        helptext.setWordWrap(True)
+        helptext.setAlignment(Qt.AlignLeft)
+        layout.addWidget(helptext)
+
+        self.setWindowTitle('Help')
+        self.setGeometry(570, 190, 330, 330)
+        self.setFixedWidth(330)
+        self.setFixedHeight(330)
 
 class AboutWindow(QWidget):
     def __init__( self ):
@@ -75,7 +88,6 @@ class AboutWindow(QWidget):
         self.setGeometry(570, 190, 330, 330)
         self.setFixedWidth(330)
         self.setFixedHeight(330)
-
 
 class Example(QMainWindow):
 
@@ -278,9 +290,14 @@ class Example(QMainWindow):
     def Extracting(self):
         if self.isExtracting == True:
 
+            self.extr = Extracting( )
+            self.extr.setParent(self, Qt.Window)
+            self.extr.show()
+
             self.Bmenuwid.setEnabled(False)
             os.system('app/bin/cleanup')
             os.system("7z x '%s' -oiso -aoa" % (self.Isonamevar))
+            self.extr.close()
 
             config = configparser.ConfigParser()
             config.read('iso/windows/config.ini')
@@ -307,6 +324,10 @@ class Example(QMainWindow):
             # Installing Code
 
             files = ['initrd.img', 'ramdisk.img','kernel','install.img','system.sfs']
+
+            if os.path.isfile('iso/gearlock'):
+                files.append('gearlock')
+
             to_increase = 100 / len(files)
 
             partition = self.Installationpart.itemText(self.Installationpart.currentIndex())
