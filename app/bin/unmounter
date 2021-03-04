@@ -4,8 +4,15 @@
 # Copyright (C) 2021
 # Must be run as root
 
-if [[ -d /mnt/tmpadvin/ ]];then
-  umount /mnt/tmpadvin
-  rm /mnt/tmpadvin -r
+if [[ -z $1 ]];then
+
+  if [[ -d /mnt/tmpadvin/ ]];then
+    umount /mnt/tmpadvin
+    rm /mnt/tmpadvin -r
+  fi
+
+  echo "[*] Adv-Installer : Unmounting"
+else
+  umount $1
+  echo "[*] Adv-Installer : Unmounting $1"
 fi
-echo "[*] Adv-Installer : Unmounting"
