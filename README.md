@@ -7,7 +7,7 @@ Developed with Python for linux.
 **Starting - Iso Selection and configuration**<br>
 ![extracting](img/1.png)
 <br>
-**OS Information - OS Name and Version**<br>
+**Installation - OS Name/Version + Installation**<br>
 ![osinfo](img/2.png)
 
 **Authentication - Safer way for root actions**<br>
