@@ -7,6 +7,8 @@ from PyQt5.QtCore import *
 import configparser
 import os
 from subprocess import CalledProcessError, check_output
+from random import randint
+import psutil
 
 helptxt = """Select an iso to be installed.
 It must contain a system.img for system to be installed.
@@ -15,7 +17,6 @@ Make sure the iso is not broken and downloaded correctly.
 Install to a specific partition."""
 
 version_name = 'v0.74.0 Beta'
-
 
 class HelpWindow(QWidget):
     def __init__( self ):
@@ -59,7 +60,7 @@ class AboutWindow(QWidget):
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
         layout.addWidget(self.widget)
-        pixmap = QPixmap('app/img/sg_logo.png')
+        pixmap = QPixmap('/usr/share/androidx86-installer/img/sg_logo.png')
         pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio)
         Pixmap_label = QLabel(self)
         Pixmap_label.setPixmap(pixmap)
@@ -95,29 +96,41 @@ class Example(QMainWindow):
         super( ).__init__( )
         self.initUI( )
 
+    def showdialog(self, txtmessage,additionalinfo,detailedtext):
+        msg = QMessageBox( )
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(txtmessage)
+        msg.setInformativeText(additionalinfo)
+        msg.setWindowTitle("Androidx86-Installer has Encountered an error")
+        if detailedtext != "":
+            msg.setDetailedText("The details are as follows: \n"+detailedtext)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.buttonClicked.connect(sys.exit)
+        msg.exec_()
+
     def initUI( self ):
         self.setAttribute(Qt.WA_DeleteOnClose, True)
         # Adding Side Options in Menu
 
-        exitAct = QAction(QIcon('app/img/exit.png'), '&Exit', self)
+        exitAct = QAction(QIcon('/usr/share/androidx86-installer/img/exit.png'), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
         self.statusBar( )
 
-        selectiso = QAction(QIcon('app/img/iso.png'), '&Select iso', self)
+        selectiso = QAction(QIcon('/usr/share/androidx86-installer/img/iso.png'), '&Select iso', self)
         selectiso.setShortcut('Ctrl+F')
         selectiso.setStatusTip('Select iso file')
         selectiso.triggered.connect(self.openFileNameDialog)
         self.statusBar( )
 
-        AboutAct = QAction(QIcon('app/img/about.png'), '&About', self)
+        AboutAct = QAction(QIcon('/usr/share/androidx86-installer/img/about.png'), '&About', self)
         AboutAct.setShortcut('Ctrl+A')
         AboutAct.setStatusTip('About application')
         AboutAct.triggered.connect(self.OpenAbout)
         self.statusBar( )
 
-        HelpAct = QAction(QIcon('app/img/help.png'), '&Help', self)
+        HelpAct = QAction(QIcon('/usr/share/androidx86-installer/img/help.png'), '&Help', self)
         HelpAct.setShortcut('Ctrl+H')
         HelpAct.setStatusTip('Help for  application')
         HelpAct.triggered.connect(self.OpenHelp)
@@ -125,6 +138,7 @@ class Example(QMainWindow):
 
         self.Isonamevar = 'None'
         self.isExtracting = True
+        self.session_id = ""
 
         ##################   Menubar  #############################
 
@@ -175,6 +189,7 @@ class Example(QMainWindow):
 
         os.system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > partlist.txt")
         f = open('partlist.txt','r')
+        self.Installationpart.addItem('Current Ext4 Partition')
         for item in f.read().split():
             self.Installationpart.addItem(item)
         os.system("rm partlist.txt")
@@ -268,13 +283,12 @@ class Example(QMainWindow):
         self.setFixedWidth(370)
         self.setFixedHeight(540)
         self.setWindowTitle('Androidx86 Installer')
-        pixmap = QPixmap('app/img/sg_logo.png')
+        pixmap = QPixmap('/usr/share/androidx86-installer/img/sg_logo.png')
         pixmap = pixmap.scaled(20, 20, Qt.KeepAspectRatio)
         icon = QIcon(pixmap)
         self.setWindowIcon(icon)
         self.show( )
-
-
+        
     def changemethod( self ):
         if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
             self.Datasize.setVisible(False)
@@ -283,55 +297,45 @@ class Example(QMainWindow):
             self.Datasize.setVisible(True)
             self.Datasizetxt.setVisible(True)
 
-
     def Datachange( self ):
         self.Datasizetxt.setText('Data Image Size: %i GB' % (self.Datasize.value()))
 
     def Extracting(self):
         if self.isExtracting == True:
+
+            self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
             self.Bmenuwid.setEnabled(False)
-            # os.system('app/bin/cleanup')
 
-            try:
-                output = check_output(["app/bin/cleanup", str(os.getcwd()+'/iso')])
-                returncode = 0
-            except CalledProcessError as e:
-                output = e.output
-                returncode = e.returncode
+            os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar,self.session_id))
 
-            if returncode != 0:
-                print("[!] Adv-Installer : Process Cleanup Failed")
-                exit(1)
+            if os.path.isfile(self.session_id+'/windows/config.ini'):
+                config = configparser.ConfigParser( )
+                config.read(self.session_id + '/windows/config.ini')
+                MetaOSName = config.get('META-DATA', 'NAME')
+                MetaOSVer = config.get('META-DATA', 'VERSION')
 
-            os.system("7z x '%s' -oiso -aoa" % (self.Isonamevar))
+                if MetaOSName[0] == '"':
+                    self.OSNAMEtxt.setText(MetaOSName[1:len(MetaOSName)-1])
+                else:
+                    self.OSNAMEtxt.setText(MetaOSName)
 
-            config = configparser.ConfigParser()
-            config.read('iso/windows/config.ini')
-
-            MetaOSName = config.get('META-DATA', 'NAME')
-            MetaOSVer = config.get('META-DATA', 'VERSION')
-
-            if MetaOSName[0] == '"':
-                self.OSNAMEtxt.setText(MetaOSName[1:len(MetaOSName)-1])
-            else:
-                self.OSNAMEtxt.setText(MetaOSName)
-
-            if MetaOSVer[0] == '"':
-                self.OSVERtxt.setText(MetaOSVer[1:len(MetaOSVer)-1])
-            else:
-                self.OSVERtxt.setText(MetaOSVer)
+                if MetaOSVer[0] == '"':
+                    self.OSVERtxt.setText(MetaOSVer[1:len(MetaOSVer)-1])
+                else:
+                    self.OSVERtxt.setText(MetaOSVer)
 
             self.Bmenuwid.setEnabled(True)
             self.rightFrame.setVisible(False)
             self.Installingframe.setVisible(True)
             self.isExtracting = False
 
+
         else:
             # Installing Code
 
             files = ['initrd.img', 'ramdisk.img','kernel','install.img','system.sfs']
 
-            if os.path.isfile('iso/gearlock'):
+            if os.path.isfile(self.session_id+'/gearlock'):
                 files.append('gearlock')
 
             to_increase = 100 / len(files)
@@ -344,29 +348,40 @@ class Example(QMainWindow):
             # os.system('app/bin/unmounter ' + partition)
 
             try:
-                output = check_output(["app/bin/unmounter", partition])
+                output = check_output(["pkexec","/usr/share/androidx86-installer/bin/unmounter", partition])
                 returncode = 0
             except CalledProcessError as e:
                 output = e.output
                 returncode = e.returncode
 
             if returncode != 0:
-                print("[!] Adv-Installer : Process Unmount Failed")
-                exit(1)
+                print("[!] ax86-Installer : Process Unmount Failed")
+                self.showdialog('Cannot Unmount','Unmounting cancelled by user')
 
 
             # os.system('app/bin/mounter ' + partition)
 
             try:
-                output = check_output(["app/bin/mounter", partition])
+                output = check_output(["pkexec","/usr/share/androidx86-installer/bin/mounter", partition])
                 returncode = 0
             except CalledProcessError as e:
                 output = e.output
                 returncode = e.returncode
 
             if returncode != 0:
-                print("[!] Adv-Installer : Process Mount Failed")
-                exit(1)
+                print("[!] ax86-Installer : Process Mount Failed")
+                self.showdialog('Cannot Mount','Mounting cancelled by user')
+
+            hdd = psutil.disk_usage('/mnt/tmpadvin/')
+            filesize = os.path.getsize(self.fileName)
+            if hdd.free < filesize:
+                print("[!] ax86-Installer : Not Enough Space in "+self.Installationpart.itemText(self.Installationpart.currentIndex))
+                self.showdialog('Error when copying files','Not Enough Space on the specified partition',detailedtext="""
+Space required for installation : %d
+Space Available on %s : %d
+            
+Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installationpart.itemText(self.Installationpart.currentIndex), hdd.free / 1024 / 1024))
+
 
 
             os.mkdir('/mnt/tmpadvin/'+OS_NAME)
@@ -374,12 +389,12 @@ class Example(QMainWindow):
             DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
 
             for file in files:
-                fsize = int(os.path.getsize('iso/'+file))
+                fsize = int(os.path.getsize(self.session_id+'/'+file))
                 new = DESTINATION + file
                 self.singlefileprog.setValue(0)
                 self.currentfilename.setText('Current file : %s' %(file))
                 self.singlefileprog.setMaximum(fsize)
-                with open('iso/'+file, 'rb') as f:
+                with open(self.session_id+'/'+file, 'rb') as f:
                     with open(new, 'ab') as n:
                         buffer = bytearray()
                         while True:
@@ -400,33 +415,43 @@ class Example(QMainWindow):
             # os.system('app/bin/unmounter')
 
             try:
-                output = check_output(["app/bin/unmounter", ])
+                output = check_output(["pkexec","/usr/share/androidx86-installer/bin/unmounter"])
                 returncode = 0
             except CalledProcessError as e:
                 output = e.output
                 returncode = e.returncode
 
             if returncode != 0:
-                print("[!] Adv-Installer : Process Unmount Failed")
-                exit(1)
-
+                print("[!] ax86-Installer : Process Unmount Failed")
+                self.showdialog('Cannot Unmount','Unmounting cancelled by user')
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
-        fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+        self.fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
                                                   "Android Image Files (*.iso)", options=options)
-        if fileName:
+        if self.fileName:
             self.Installbtn.setEnabled(True)
-            self.Isonamevar = fileName
-            if len(fileName) > 35:
-                self.selectediso.setText('Iso : %s... (%0.2f GB)' % (fileName[0:35], os.path.getsize(fileName) / 1024 / 1024 / 1024))
+            self.Isonamevar = self.fileName
+            if len(self.fileName) > 35:
+                self.selectediso.setText('Iso : %s... (%0.2f GB)' % (self.fileName[0:35], os.path.getsize(self.fileName) / 1024 / 1024 / 1024))
             else:
-                self.selectediso.setText('Iso : %s' % (fileName))
+                self.selectediso.setText('Iso : %s' % (self.fileName))
 
         else:
             self.Installbtn.setEnabled(False)
             self.selectediso.setText('Iso : None')
             self.Isonamevar = 'None'
+
+        filesize = os.path.getsize(self.fileName)
+        cp_space = psutil.disk_usage('/')
+        if cp_space.free < filesize:
+            self.Installbtn.setEnabled(False)
+            print("[!] ax86-Installer : Not Enough Space to extract file")
+            self.showdialog('Cannot Extract', 'Not enough space on current partition to extract files',detailedtext="""
+Required space for extracting file/filesize : %d MB
+Available space in the current partition : %d MB
+
+Free up some space on current partition and try again.""" %(filesize / 1024 / 1024, cp_space.free / 1024 / 1024))
 
     def OpenAbout( self ):
         self.abtwin = AboutWindow( )
