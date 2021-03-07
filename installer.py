@@ -102,7 +102,7 @@ class Example(QMainWindow):
         msg.setText(txtmessage)
         msg.setInformativeText(additionalinfo)
         msg.setWindowTitle("Androidx86-Installer has Encountered an error")
-        if detailedtext != "":
+        if detailedtext != "none":
             msg.setDetailedText("The details are as follows: \n"+detailedtext)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.buttonClicked.connect(sys.exit)
@@ -356,7 +356,7 @@ class Example(QMainWindow):
 
             if returncode != 0:
                 print("[!] ax86-Installer : Process Unmount Failed")
-                self.showdialog('Cannot Unmount','Unmounting cancelled by user')
+                self.showdialog('Cannot Unmount','Unmounting cancelled by user','none')
 
 
             # os.system('app/bin/mounter ' + partition)
@@ -370,15 +370,15 @@ class Example(QMainWindow):
 
             if returncode != 0:
                 print("[!] ax86-Installer : Process Mount Failed")
-                self.showdialog('Cannot Mount','Mounting cancelled by user')
+                self.showdialog('Cannot Mount','Mounting cancelled by user','none')
 
             hdd = psutil.disk_usage('/mnt/tmpadvin/')
             filesize = os.path.getsize(self.fileName)
             if hdd.free < filesize:
                 print("[!] ax86-Installer : Not Enough Space in "+self.Installationpart.itemText(self.Installationpart.currentIndex))
                 self.showdialog('Error when copying files','Not Enough Space on the specified partition',detailedtext="""
-Space required for installation : %d
-Space Available on %s : %d
+Space required for installation : %d MB
+Space Available on %s : %d MB
             
 Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installationpart.itemText(self.Installationpart.currentIndex), hdd.free / 1024 / 1024))
 
@@ -423,7 +423,7 @@ Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installati
 
             if returncode != 0:
                 print("[!] ax86-Installer : Process Unmount Failed")
-                self.showdialog('Cannot Unmount','Unmounting cancelled by user')
+                self.showdialog('Cannot Unmount','Unmounting cancelled by user','none')
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
