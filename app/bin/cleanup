@@ -4,7 +4,7 @@
 # Copyright (C) 2021
 echo "$1"
 if [[ -d "$1/" ]];then
-  pkexec rm "$1/" -r
+  rm "$1/" -r
 else
   mkdir "$1"
 fi
