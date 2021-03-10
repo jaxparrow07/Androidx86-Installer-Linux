@@ -105,7 +105,7 @@ class Example(QMainWindow):
         if detailedtext != "none":
             msg.setDetailedText("The details are as follows: \n"+detailedtext)
         msg.setStandardButtons(QMessageBox.Ok)
-        msg.buttonClicked.connect(sys.exit)
+        msg.buttonClicked.connect(self.revertback)
         msg.exec_()
 
     def initUI( self ):
@@ -185,16 +185,12 @@ class Example(QMainWindow):
 
         self.Installationpart = QComboBox()
 
-        # Rough Code to test.. Will be changed later
-
-        os.system("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}' > partlist.txt")
-        f = open('partlist.txt','r')
+        getpart = os.popen("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}'").read()
+        cpart = os.popen("df -Th /home/ | head -n 2 | tail -n 1 | awk '{print $1;}'").read()
         self.Installationpart.addItem('Current Ext4 Partition')
-        for item in f.read().split():
+        getpart = getpart.replace(cpart, ' ')
+        for item in getpart.split():
             self.Installationpart.addItem(item)
-        os.system("rm partlist.txt")
-
-        # End of sample code
 
         self.singlefileprog = QProgressBar()
         self.singlefileprog.setValue(0)
@@ -297,6 +293,14 @@ class Example(QMainWindow):
             self.Datasize.setVisible(True)
             self.Datasizetxt.setVisible(True)
 
+    def revertback( self ):
+        self.session_id = ""
+        self.rightFrame.setVisible(True)
+        self.Installingframe.setVisible(False)
+        self.fileName = ""
+        self.Isonamevar = 'None'
+        self.isExtracting = True
+
     def Datachange( self ):
         self.Datasizetxt.setText('Data Image Size: %i GB' % (self.Datasize.value()))
 
@@ -347,32 +351,40 @@ class Example(QMainWindow):
 
             # os.system('app/bin/unmounter ' + partition)
 
-            try:
-                output = check_output(["pkexec","/usr/share/androidx86-installer/bin/unmounter", partition])
-                returncode = 0
-            except CalledProcessError as e:
-                output = e.output
-                returncode = e.returncode
+            if partition == 'Current Ext4 Partition':
+                home=True
+            else:
+                home=False
 
-            if returncode != 0:
-                print("[!] ax86-Installer : Process Unmount Failed")
-                self.showdialog('Cannot Unmount','Unmounting cancelled by user','none')
+            if not home:
+                try:
+                    output = check_output(["pkexec","/usr/share/androidx86-installer/bin/unmounter", partition])
+                    returncode = 0
+                except CalledProcessError as e:
+                    output = e.output
+                    returncode = e.returncode
 
+                if returncode != 0:
+                    print("[!] ax86-Installer : Process Unmount Failed")
+                    self.showdialog('Cannot Unmount','Unmounting cancelled by user','none')
 
             # os.system('app/bin/mounter ' + partition)
+            if not home:
+                try:
+                    output = check_output(["pkexec","/usr/share/androidx86-installer/bin/mounter", partition])
+                    returncode = 0
+                except CalledProcessError as e:
+                    output = e.output
+                    returncode = e.returncode
 
-            try:
-                output = check_output(["pkexec","/usr/share/androidx86-installer/bin/mounter", partition])
-                returncode = 0
-            except CalledProcessError as e:
-                output = e.output
-                returncode = e.returncode
+                if returncode != 0:
+                    print("[!] ax86-Installer : Process Mount Failed")
+                    self.showdialog('Cannot Mount','Mounting cancelled by user','none')
 
-            if returncode != 0:
-                print("[!] ax86-Installer : Process Mount Failed")
-                self.showdialog('Cannot Mount','Mounting cancelled by user','none')
-
-            hdd = psutil.disk_usage('/mnt/tmpadvin/')
+            if not home:
+                hdd = psutil.disk_usage('/mnt/tmpadvin/')
+            else:
+                hdd = psutil.disk_usage('/')
             filesize = os.path.getsize(self.fileName)
             if hdd.free < filesize:
                 print("[!] ax86-Installer : Not Enough Space in "+self.Installationpart.itemText(self.Installationpart.currentIndex))
@@ -383,10 +395,35 @@ Space Available on %s : %d MB
 Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installationpart.itemText(self.Installationpart.currentIndex), hdd.free / 1024 / 1024))
 
 
+            if not home:
+                os.mkdir('/mnt/tmpadvin/'+OS_NAME)
+                DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
+            else:
+                DESTINATION = '/' + OS_NAME + '/'
+                dirname = '/' + OS_NAME
 
-            os.mkdir('/mnt/tmpadvin/'+OS_NAME)
+                try:
+                    output = check_output(["pkexec","mkdir",dirname])
+                    returncode = 0
+                except CalledProcessError as e:
+                    output = e.output
+                    returncode = e.returncode
 
-            DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
+                if returncode != 0:
+                    print("[!] ax86-Installer : Process Folder Create Failed")
+                    self.showdialog('Cannot Create Folder', 'Folder Creation cancelled by user', 'none')
+
+
+                try:
+                    output = check_output(["pkexec","chmod","777",dirname])
+                    returncode = 0
+                except CalledProcessError as e:
+                    output = e.output
+                    returncode = e.returncode
+
+                if returncode != 0:
+                    print("[!] ax86-Installer : Process Chmod Failed")
+                    self.showdialog('Cannot Own Folder', 'Chmod cancelled by user','none')
 
             for file in files:
                 fsize = int(os.path.getsize(self.session_id+'/'+file))
@@ -409,8 +446,13 @@ Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installati
                 self.installprog.setValue(100)
 
             if self.InstallationFS.itemText(self.InstallationFS.currentIndex( )) == 'Ext':
-                os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
-                os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
+                if not home:
+                    os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
+                    os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
+                else:
+                    DESTINATION = '/' + OS_NAME
+                    os.mkdir(DESTINATION + '/data')
+                    os.system('mkdir '+DESTINATION+'/findme')
 
             # os.system('app/bin/unmounter')
 
