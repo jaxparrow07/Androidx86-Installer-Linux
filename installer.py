@@ -300,7 +300,6 @@ class Example(QMainWindow):
         self.session_id = ""
         self.rightFrame.setVisible(True)
         self.Installingframe.setVisible(False)
-        self.fileName = ""
         self.Isonamevar = 'None'
         self.isExtracting = True
 
@@ -370,8 +369,8 @@ class Example(QMainWindow):
 
                 if returncode != 0:
                     print("[!] ax86-Installer : Process Unmount Failed")
-                    self.showdialog('Cannot Unmount','Unmounting cancelled by user','none')
-                    pass
+                    self.showdialog('Cannot Unmount','Unmounting Failed to some reasons','none')
+                    return
 
             # os.system('app/bin/mounter ' + partition)
             if not home:
@@ -385,7 +384,7 @@ class Example(QMainWindow):
                 if returncode != 0:
                     print("[!] ax86-Installer : Process Mount Failed")
                     self.showdialog('Cannot Mount','Mounting cancelled by user','none')
-                    pass
+                    return
             if not home:
                 hdd = psutil.disk_usage('/mnt/tmpadvin/')
             else:
@@ -398,7 +397,7 @@ Space required for installation : %d MB
 Space Available on %s : %d MB
             
 Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installationpart.itemText(self.Installationpart.currentIndex), hdd.free / 1024 / 1024))
-            pass
+                return
 
             if not home:
                 if not os.path.isdir('/mnt/tmpadvin/'+OS_NAME+'/'):
@@ -406,10 +405,9 @@ Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installati
                     DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
                 else:
                     self.showdialog('Folder Already Exists', 'Folder Creation Failed', detailedtext="""
-The installation folder %s in %s already exists
-Please rename the folder or use other name in
-in the Os name and Version field""" % (OS_NAME,partition))
-                    pass
+The installation folder %s in %s already exists.
+Please rename the folder or use other name in the Os name and Version field""" % (OS_NAME,partition))
+                    return
 
             else:
                 DESTINATION = '/' + OS_NAME + '/'
@@ -426,13 +424,12 @@ in the Os name and Version field""" % (OS_NAME,partition))
                     if returncode != 0:
                         print("[!] ax86-Installer : Process Folder Create Failed")
                         self.showdialog('Cannot Create Folder', 'Folder Creation cancelled by user', 'none')
-                        pass
+                        return
                 else:
                     self.showdialog('Folder Already Exists', 'Folder Creation Failed',detailedtext="""
-The installation folder %s already exists
-Please rename the folder or use other name in
-in the Os name and Version field""" %(dirname))
-                    pass
+The installation folder %s already exists.
+Please rename the folder or use other name in the Os name and Version field""" %(dirname))
+                    return
 
 
                 try:
@@ -445,7 +442,7 @@ in the Os name and Version field""" %(dirname))
                 if returncode != 0:
                     print("[!] ax86-Installer : Process Chmod Failed")
                     self.showdialog('Cannot Own Folder', 'Chmod cancelled by user','none')
-                    pass
+                    return
 
             for file in files:
                 fsize = int(os.path.getsize(self.session_id+'/'+file))
@@ -487,8 +484,8 @@ in the Os name and Version field""" %(dirname))
 
             if returncode != 0:
                 print("[!] ax86-Installer : Process Unmount Failed")
-                self.showdialog('Cannot Unmount','Unmounting cancelled by user','none')
-                pass
+                self.showdialog('Cannot Unmount','Unmounting failed due to some reasons','none')
+                return
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
@@ -517,7 +514,7 @@ Required space for extracting file/filesize : %d MB
 Available space in the current partition : %d MB
 
 Free up some space on current partition and try again.""" %(filesize / 1024 / 1024, cp_space.free / 1024 / 1024))
-            pass
+
     def OpenAbout( self ):
         self.abtwin = AboutWindow( )
         self.abtwin.setParent(self, Qt.Window)
