@@ -396,23 +396,35 @@ Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installati
 
 
             if not home:
-                os.mkdir('/mnt/tmpadvin/'+OS_NAME)
-                DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
+                if not os.path.isdir('/mnt/tmpadvin/'+OS_NAME+'/'):
+                    os.mkdir('/mnt/tmpadvin/'+OS_NAME)
+                    DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
+                else:
+                    self.showdialog('Folder Already Exists', 'Folder Creation Failed', detailedtext="""
+The installation folder %s in %s already exists
+Please rename the folder or use other name in
+in the Os name and Version field""" % (OS_NAME,partition))
+
             else:
                 DESTINATION = '/' + OS_NAME + '/'
                 dirname = '/' + OS_NAME
 
-                try:
-                    output = check_output(["pkexec","mkdir",dirname])
-                    returncode = 0
-                except CalledProcessError as e:
-                    output = e.output
-                    returncode = e.returncode
+                if not os.path.isdir(dirname):
+                    try:
+                        output = check_output(["pkexec","mkdir",dirname])
+                        returncode = 0
+                    except CalledProcessError as e:
+                        output = e.output
+                        returncode = e.returncode
 
-                if returncode != 0:
-                    print("[!] ax86-Installer : Process Folder Create Failed")
-                    self.showdialog('Cannot Create Folder', 'Folder Creation cancelled by user', 'none')
-
+                    if returncode != 0:
+                        print("[!] ax86-Installer : Process Folder Create Failed")
+                        self.showdialog('Cannot Create Folder', 'Folder Creation cancelled by user', 'none')
+                else:
+                    self.showdialog('Folder Already Exists', 'Folder Creation Failed',detailedtext="""
+The installation folder %s already exists
+Please rename the folder or use other name in
+in the Os name and Version field""" %(dirname))
 
                 try:
                     output = check_output(["pkexec","chmod","777",dirname])
@@ -452,7 +464,7 @@ Free up some space and retry again.""" % (filesize / 1024 / 1024,self.Installati
                 else:
                     DESTINATION = '/' + OS_NAME
                     os.mkdir(DESTINATION + '/data')
-                    os.system('mkdir '+DESTINATION+'/findme')
+                    os.system('touch '+DESTINATION+'/findme')
 
             # os.system('app/bin/unmounter')
 
