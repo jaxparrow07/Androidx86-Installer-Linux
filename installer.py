@@ -136,6 +136,12 @@ class Example(QMainWindow):
         HelpAct.triggered.connect(self.OpenHelp)
         self.statusBar( )
 
+        Cleartemp = QAction(QIcon('/usr/share/androidx86-installer/img/clr_tmp.png'), '&Clear Temp', self)
+        Cleartemp.setShortcut('Ctrl+T')
+        Cleartemp.setStatusTip('Removes Extraction Temp Files')
+        Cleartemp.triggered.connect(self.cleartemp)
+        self.statusBar( )
+
         self.Isonamevar = 'None'
         self.isExtracting = True
         self.session_id = ""
@@ -257,6 +263,8 @@ class Example(QMainWindow):
         self.closebtn.clicked.connect(self.func_quit_all_windows)
         self.Installbtn.setEnabled(False)
         self.Installbtn.clicked.connect(self.Extracting)
+        self.OSVERtxt.textChanged.connect(self.input_fields_check)
+        self.OSNAMEtxt.textChanged.connect(self.input_fields_check)
 
         Bottommenu.addWidget(QLabel('            '))
         Bottommenu.addWidget(self.Installbtn)
@@ -313,6 +321,16 @@ class Example(QMainWindow):
         self.isExtracting = True
         self.installprog.setValue(0)
 
+    def input_fields_check( self ):
+        if not self.isExtracting:
+            if self.OSNAMEtxt.text() == "":
+                self.Installbtn.setEnabled(False)
+            elif self.OSVERtxt.text() == "":
+                self.Installbtn.setEnabled(False)
+            else:
+                self.Installbtn.setEnabled(True)
+
+
     def Datachange( self ):
         self.Datasizetxt.setText('Data Image Size: %i GB' % (self.Datasize.value()))
 
@@ -340,6 +358,8 @@ class Example(QMainWindow):
                     self.OSVERtxt.setText(MetaOSVer[1:len(MetaOSVer)-1])
                 else:
                     self.OSVERtxt.setText(MetaOSVer)
+            else:
+                self.Installbtn.setEnabled(False)
 
             self.Bmenuwid.setEnabled(True)
             self.rightFrame.setVisible(False)
@@ -514,12 +534,13 @@ Please rename the folder or use other name in the Os name and Version field""" %
             self.selectediso.setText('Iso : None')
             self.Isonamevar = 'None'
 
-        filesize = os.path.getsize(self.fileName)
-        cp_space = psutil.disk_usage('/home/')
-        if cp_space.free < filesize:
-            self.Installbtn.setEnabled(False)
-            print("[!] ax86-Installer : Not Enough Space to extract file")
-            self.showdialog('Cannot Extract', 'Not enough space on current partition to extract files',detailedtext="""
+        if self.fileName:
+            filesize = os.path.getsize(self.fileName)
+            cp_space = psutil.disk_usage('/home/')
+            if cp_space.free < filesize:
+                self.Installbtn.setEnabled(False)
+                print("[!] ax86-Installer : Not Enough Space to extract file")
+                self.showdialog('Cannot Extract', 'Not enough space on current partition to extract files',detailedtext="""
 Required space for extracting file/filesize : %d MB
 Available space in the current partition : %d MB
 
