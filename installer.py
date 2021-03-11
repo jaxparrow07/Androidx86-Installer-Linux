@@ -315,6 +315,8 @@ class Example(QMainWindow):
         self.Isonamevar = 'None'
         self.isExtracting = True
         self.installprog.setValue(0)
+        self.currentfilename.setText('Current file : None')
+        self.singlefileprog.setValue(0)
 
     def input_fields_check( self ):
         if not self.isExtracting:
@@ -332,9 +334,10 @@ class Example(QMainWindow):
     def Extracting(self):
         if self.isExtracting == True:
             if self.fileName != self.prevfile:
-                self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
+                # self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
+                self.session_id = '/tmp/ax86_44257191'
                 self.Bmenuwid.setEnabled(False)
-                os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
+                # os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
             else:
                 self.session_id = self.prevsessionid
 
@@ -365,10 +368,12 @@ class Example(QMainWindow):
         else:
             # Installing Code
 
-            files = ['initrd.img', 'ramdisk.img','kernel','install.img','system.sfs']
+            files = ['initrd.img', 'ramdisk.img','kernel','install.img']
+            # ,'system.sfs'
 
             if os.path.isfile(self.session_id+'/gearlock'):
                 files.append('gearlock')
+
 
             to_increase = 100 / len(files)
 
@@ -500,25 +505,27 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     os.system('touch '+DESTINATION+'/findme')
             else:
                 if not home:
-                    "dd if=/dev/zero of=data.img bs=1024 count=1048576"
-                    file = 'of=/mnt/tmpadvin/' + OS_NAME + 'data.img'
+                    # "dd if=/dev/zero of=data.img bs=1024 count=1048576"
+                    file = 'of=/mnt/tmpadvin/' + OS_NAME + '/data.img'
                     hdd = psutil.disk_usage('/mnt/tmpadvin/')
                 else:
-                    file = 'of=/home/' + OS_NAME + 'data.img'
+                    file = 'of=/home/' + OS_NAME + '/data.img'
                     hdd = psutil.disk_usage('/home/')
 
-                bs = self.Datasize.value( ) * 1024
-                count = bs * 1024
+                bs = 1024
+                count = int(self.Datasize.value() * 1024 * 1024 * 1024)
+                seek = int(self.Datasize.value() * 1024 * 1024)
+
 
                 if hdd.free < count:
                     print("[!] ax86-Installer : Process Data Create Failed")
                     self.showdialog('Cannot Create data.img', 'Insufficient Space', detailedtext="""
 Space required for Data.img : %d GB
-Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 ))
+Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 1024 ))
                     return
                 else:
                     try:
-                        output = check_output(["pkexec", "dd", "if/dev/zero", file, str(bs), str(count)])
+                        output = check_output(["pkexec", "dd", "if=/dev/zero", file, 'bs='+str(bs), 'count=0','seek='+str(seek)])
                         returncode = 0
                     except CalledProcessError as e:
                         output = e.output
