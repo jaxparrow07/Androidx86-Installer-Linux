@@ -188,10 +188,19 @@ class Example(QMainWindow):
 
         getpart = os.popen("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}'").read()
         cpart = os.popen("df -Th /home/ | head -n 2 | tail -n 1 | awk '{print $1;}'").read()
-        self.Installationpart.addItem('Current Ext4 Partition')
-        getpart = getpart.replace(cpart, ' ')
+        self.Installationpart.addItem('Current Home Directory')
+        getpart = getpart.replace(cpart, '')
         for item in getpart.split():
             self.Installationpart.addItem(item)
+
+        root = os.popen("df -Th / | head -n 2 | tail -n 1 | awk '{print $1;}'").read()
+
+        if root != cpart:
+            self.c_home = True
+            getpart = getpart.replace(cpart, '').replace(root,'')
+        else:
+            self.c_home = False
+            getpart = getpart.replace(cpart, '')
 
         self.singlefileprog = QProgressBar()
         self.singlefileprog.setValue(0)
@@ -302,6 +311,7 @@ class Example(QMainWindow):
         self.Installingframe.setVisible(False)
         self.Isonamevar = 'None'
         self.isExtracting = True
+        self.installprog.setValue(0)
 
     def Datachange( self ):
         self.Datasizetxt.setText('Data Image Size: %i GB' % (self.Datasize.value()))
@@ -354,7 +364,7 @@ class Example(QMainWindow):
 
             # os.system('app/bin/unmounter ' + partition)
 
-            if partition == 'Current Ext4 Partition':
+            if partition == 'Current Home Directory':
                 home=True
             else:
                 home=False
@@ -388,7 +398,7 @@ class Example(QMainWindow):
             if not home:
                 hdd = psutil.disk_usage('/mnt/tmpadvin/')
             else:
-                hdd = psutil.disk_usage('/')
+                hdd = psutil.disk_usage('/home/')
             filesize = os.path.getsize(self.fileName)
             if hdd.free < filesize:
                 print("[!] ax86-Installer : Not Enough Space in "+self.Installationpart.itemText(self.Installationpart.currentIndex))
@@ -410,8 +420,8 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     return
 
             else:
-                DESTINATION = '/' + OS_NAME + '/'
-                dirname = '/' + OS_NAME
+                DESTINATION = '/home/' + OS_NAME + '/'
+                dirname = '/home/' + OS_NAME
 
                 if not os.path.isdir(dirname):
                     try:
@@ -469,23 +479,23 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
                     os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
                 else:
-                    DESTINATION = '/' + OS_NAME
+                    DESTINATION = '/home/' + OS_NAME
                     os.mkdir(DESTINATION + '/data')
                     os.system('touch '+DESTINATION+'/findme')
 
             # os.system('app/bin/unmounter')
+            if not home:
+                try:
+                    output = check_output(["pkexec","/usr/share/androidx86-installer/bin/unmounter"])
+                    returncode = 0
+                except CalledProcessError as e:
+                    output = e.output
+                    returncode = e.returncode
 
-            try:
-                output = check_output(["pkexec","/usr/share/androidx86-installer/bin/unmounter"])
-                returncode = 0
-            except CalledProcessError as e:
-                output = e.output
-                returncode = e.returncode
-
-            if returncode != 0:
-                print("[!] ax86-Installer : Process Unmount Failed")
-                self.showdialog('Cannot Unmount','Unmounting failed due to some reasons','none')
-                return
+                if returncode != 0:
+                    print("[!] ax86-Installer : Process Unmount Failed")
+                    self.showdialog('Cannot Unmount','Unmounting failed due to some reasons','none')
+                    return
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
@@ -505,7 +515,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
             self.Isonamevar = 'None'
 
         filesize = os.path.getsize(self.fileName)
-        cp_space = psutil.disk_usage('/')
+        cp_space = psutil.disk_usage('/home/')
         if cp_space.free < filesize:
             self.Installbtn.setEnabled(False)
             print("[!] ax86-Installer : Not Enough Space to extract file")
