@@ -18,6 +18,8 @@ Install to a specific partition."""
 
 version_name = 'v0.78.0 Beta'
 
+debug=True
+
 class HelpWindow(QWidget):
     def __init__( self ):
         super().__init__()
@@ -334,10 +336,10 @@ class Example(QMainWindow):
     def Extracting(self):
         if self.isExtracting == True:
             if self.fileName != self.prevfile:
-                # self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
-                self.session_id = '/tmp/ax86_44257191'
+                self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
+                # self.session_id = '/tmp/ax86_44257191'
                 self.Bmenuwid.setEnabled(False)
-                # os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
+                os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
             else:
                 self.session_id = self.prevsessionid
 
@@ -368,8 +370,7 @@ class Example(QMainWindow):
         else:
             # Installing Code
 
-            files = ['initrd.img', 'ramdisk.img','kernel','install.img']
-            # ,'system.sfs'
+            files = ['initrd.img', 'ramdisk.img','kernel','install.img','system.sfs']
 
             if os.path.isfile(self.session_id+'/gearlock'):
                 files.append('gearlock')
