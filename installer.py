@@ -16,7 +16,7 @@ Make sure the iso is not broken and downloaded correctly.
 
 Install to a specific partition."""
 
-version_name = 'v0.74.0 Beta'
+version_name = 'v0.78.0 Beta'
 
 class HelpWindow(QWidget):
     def __init__( self ):
@@ -493,6 +493,23 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 if not home:
                     os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
                     os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
+                    "dd if=/dev/zero of=data.img bs=1024 count=1048576"
+
+                    file = 'of=/mnt/tmpadvin/' + OS_NAME + 'data.img'
+                    bs = self.Datasize.value() * 1024
+                    count = bs * 1024
+
+                    try:
+                        output = check_output(["pkexec", "dd","if/dev/zero",file,str(bs),str(count)])
+                        returncode = 0
+                    except CalledProcessError as e:
+                        output = e.output
+                        returncode = e.returncode
+
+                    if returncode != 0:
+                        print("[!] ax86-Installer : Process Chmod Failed")
+                        self.showdialog('Cannot Create data.img', 'Data Image creation Failed', 'none')
+                        return
                 else:
                     DESTINATION = '/home/' + OS_NAME
                     os.mkdir(DESTINATION + '/data')
