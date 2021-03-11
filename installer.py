@@ -23,31 +23,31 @@ class HelpWindow(QWidget):
         super().__init__()
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignTop)
+
         helptext = QLabel(helptxt)
         helptext.adjustSize( )
         helptext.setFixedWidth(330)
         helptext.setWordWrap(True)
         helptext.setAlignment(Qt.AlignLeft)
+
+        helpheading = QLabel("Installing")
+        helpheading.adjustSize( )
+        helpheading.setFixedWidth(330)
+        helpheading.setFont(QFont('Arial',13))
+        helpheading.setWordWrap(True)
+        helpheading.setAlignment(Qt.AlignCenter)
+
+
+        layout.addWidget(helpheading)
         layout.addWidget(helptext)
 
-        self.setWindowTitle('Help')
-        self.setGeometry(570, 190, 330, 330)
-        self.setFixedWidth(330)
-        self.setFixedHeight(330)
-
-class Extracting(QWidget):
-    def __init__( self ):
-        super().__init__()
-        self.widget = QWidget(self)
-        layout = QVBoxLayout(self)
+        layoutscrl = QScrollArea(self)
+        layoutscrl.setFixedWidth(330)
+        layoutscrl.setFixedHeight(330)
+        qframe = QFrame()
+        qframe.setLayout(layout)
+        layoutscrl.setWidget(qframe)
         layout.setAlignment(Qt.AlignTop)
-        helptext = QLabel("Extracting")
-        helptext.adjustSize( )
-        helptext.setFixedWidth(330)
-        helptext.setWordWrap(True)
-        helptext.setAlignment(Qt.AlignLeft)
-        layout.addWidget(helptext)
 
         self.setWindowTitle('Help')
         self.setGeometry(570, 190, 330, 330)
@@ -136,11 +136,6 @@ class Example(QMainWindow):
         HelpAct.triggered.connect(self.OpenHelp)
         self.statusBar( )
 
-        Cleartemp = QAction(QIcon('/usr/share/androidx86-installer/img/clr_tmp.png'), '&Clear Temp', self)
-        Cleartemp.setShortcut('Ctrl+T')
-        Cleartemp.setStatusTip('Removes Extraction Temp Files')
-        Cleartemp.triggered.connect(self.cleartemp)
-        self.statusBar( )
 
         self.Isonamevar = 'None'
         self.isExtracting = True
