@@ -493,27 +493,42 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 if not home:
                     os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
                     os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
+
+                else:
+                    DESTINATION = '/home/' + OS_NAME
+                    os.mkdir(DESTINATION + '/data')
+                    os.system('touch '+DESTINATION+'/findme')
+            else:
+                if not home:
                     "dd if=/dev/zero of=data.img bs=1024 count=1048576"
-
                     file = 'of=/mnt/tmpadvin/' + OS_NAME + 'data.img'
-                    bs = self.Datasize.value() * 1024
-                    count = bs * 1024
+                    hdd = psutil.disk_usage('/mnt/tmpadvin/')
+                else:
+                    file = 'of=/home/' + OS_NAME + 'data.img'
+                    hdd = psutil.disk_usage('/home/')
 
+                bs = self.Datasize.value( ) * 1024
+                count = bs * 1024
+
+                if hdd.free < count:
+                    print("[!] ax86-Installer : Process Data Create Failed")
+                    self.showdialog('Cannot Create data.img', 'Insufficient Space', detailedtext="""
+Space required for Data.img : %d GB
+Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 ))
+                    return
+                else:
                     try:
-                        output = check_output(["pkexec", "dd","if/dev/zero",file,str(bs),str(count)])
+                        output = check_output(["pkexec", "dd", "if/dev/zero", file, str(bs), str(count)])
                         returncode = 0
                     except CalledProcessError as e:
                         output = e.output
                         returncode = e.returncode
 
                     if returncode != 0:
-                        print("[!] ax86-Installer : Process Chmod Failed")
+                        print("[!] ax86-Installer : Process Data Create Failed")
                         self.showdialog('Cannot Create data.img', 'Data Image creation Failed', 'none')
                         return
-                else:
-                    DESTINATION = '/home/' + OS_NAME
-                    os.mkdir(DESTINATION + '/data')
-                    os.system('touch '+DESTINATION+'/findme')
+
 
             # os.system('app/bin/unmounter')
             if not home:
