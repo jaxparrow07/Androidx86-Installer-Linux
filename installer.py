@@ -122,6 +122,16 @@ class Example(QMainWindow):
         msg.buttonClicked.connect(self.revertback)
         msg.exec_()
 
+    def install_done(self, get_name):
+        msg = QMessageBox( )
+        msg.setText("Successfully Installed")
+        msg.setInformativeText(get_name+' has been installed Successfully')
+        msg.setWindowTitle("Androidx86-Installer has Encountered an error")
+
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.buttonClicked.connect(self.revertback)
+        msg.exec_()
+
     def initUI( self ):
         self.setAttribute(Qt.WA_DeleteOnClose, True)
         # Adding Side Options in Menu
@@ -203,11 +213,6 @@ class Example(QMainWindow):
 
         getpart = os.popen("grep '/dev/sd' '/proc/mounts' | awk '{print $1;}'").read()
         cpart = os.popen("df -Th /home/ | head -n 2 | tail -n 1 | awk '{print $1;}'").read()
-        self.Installationpart.addItem('Current Home Directory')
-        getpart = getpart.replace(cpart, '')
-        for item in getpart.split():
-            self.Installationpart.addItem(item)
-
         root = os.popen("df -Th / | head -n 2 | tail -n 1 | awk '{print $1;}'").read()
 
         if root != cpart:
@@ -215,7 +220,12 @@ class Example(QMainWindow):
             getpart = getpart.replace(cpart, '').replace(root,'')
         else:
             self.c_home = False
-            getpart = getpart.replace(cpart, '')
+            getpart = getpart.replace(root, '')
+
+
+        self.Installationpart.addItem('Current Home Directory')
+        for item in getpart.split():
+            self.Installationpart.addItem(item)
 
         self.singlefileprog = QProgressBar()
         self.singlefileprog.setValue(0)
@@ -311,7 +321,8 @@ class Example(QMainWindow):
         icon = QIcon(pixmap)
         self.setWindowIcon(icon)
         self.show( )
-        
+
+
     def changemethod( self ):
         if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
             self.Datasize.setVisible(False)
@@ -331,6 +342,7 @@ class Example(QMainWindow):
         self.installprog.setValue(0)
         self.currentfilename.setText('Current file : None')
         self.singlefileprog.setValue(0)
+
 
     def input_fields_check( self ):
         if not self.isExtracting:
@@ -584,6 +596,31 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
                     print("[!] ax86-Installer : Process Unmount Failed")
                     self.showdialog('Cannot Unmount','Unmounting failed due to some reasons','none')
                     return
+
+            print("[*] ax86-Installer : Creating GRUB Entries")
+
+            if not self.c_home:
+                cmd_list = ["pkexec", "/usr/share/androidx86-installer/bin/grub-modify",OS_NAME,'ncpart']
+            else:
+                cmd_list = ["pkexec", "/usr/share/androidx86-installer/bin/grub-modify", OS_NAME,"cpart"]
+
+            try:
+                output = check_output(cmd_list)
+                returncode = 0
+            except CalledProcessError as e:
+                output = e.output
+                returncode = e.returncode
+
+            if returncode != 0:
+                print("[!] ax86-Installer : GRUB Entry Creation Failed")
+                self.showdialog('Cannot Add GRUB Entry', 'There was an error when adding GRUB entry', 'none')
+                return
+
+
+            self.install_done(OS_NAME)
+
+
+
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
