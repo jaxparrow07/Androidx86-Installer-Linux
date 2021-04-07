@@ -5,12 +5,14 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from subprocess import CalledProcessError, check_output
 from random import randint
+from webbrowser import open
 import psutil
 import configparser
 import os
 import sys
 
-# 11 Important imports - Some are optimized to minimum imports
+
+# 12 Important imports - Some are optimized to minimum imports
 
 
 ## Adx86-Installer - Important Variables ##
@@ -99,7 +101,6 @@ class AboutWindow(QWidget):
         Pixmap_label.setPixmap(pixmap)
         Pixmap_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(Pixmap_label)
-        # layout.addWidget(pixmap.scaled(100,100,Qt.KeepAspectRatio))
 
         version_app = QLabel(version_name)
         version_app.setAlignment(Qt.AlignCenter)
@@ -110,7 +111,16 @@ class AboutWindow(QWidget):
         SG_Name = QLabel('Made with time & passion by SupremeGamers')
         SG_Name.setFont(QFont('Arial', 11))
 
+        def openwebsite():
+            open('https://supreme-gamers.com')
+
+
+        webbtn = QPushButton('Visit Website')
+        webbtn.clicked.connect(openwebsite)
+
+
         layout.addWidget(SG_Name)
+        layout.addWidget(webbtn)
         layout.addWidget(QLabel(' '))
         author_name = QLabel('Programmed by Jaxparrow')
         author_name.setFont(QFont('Arial', 9))
@@ -553,7 +563,6 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     os.system('touch '+DESTINATION+'/findme')
             else:
                 if not home:
-                    # "dd if=/dev/zero of=data.img bs=1024 count=1048576"
                     file = 'of=/mnt/tmpadvin/' + OS_NAME + '/data.img'
                     file_n = '/mnt/tmpadvin/' + OS_NAME + '/data.img'
                     hdd = psutil.disk_usage('/mnt/tmpadvin/')
