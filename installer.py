@@ -10,7 +10,7 @@ import configparser
 import os
 import sys
 
-# 12 Important imports - Some are optimized to minimum imports
+# 11 Important imports - Some are optimized to minimum imports
 
 
 ## Adx86-Installer - Important Variables ##
@@ -362,10 +362,10 @@ class Example(QMainWindow):
     def Extracting(self):
         if self.isExtracting == True:
             if self.fileName != self.prevfile:
-                #self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
-                self.session_id = '/tmp/ax86_23381667'
+                self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
+                #self.session_id = '/tmp/ax86_23381667'
                 self.Bmenuwid.setEnabled(False)
-                #os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
+                os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
             else:
                 self.session_id = self.prevsessionid
 
