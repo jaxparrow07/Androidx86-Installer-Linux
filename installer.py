@@ -624,8 +624,10 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
 
     def openFileNameDialog( self ):
         options = QFileDialog.Options( )
-        self.fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+        options |= QFileDialog.DontUseNativeDialog
+        self.fileName, _ = QFileDialog.getOpenFileName(self, "Select an Android image", "",
                                                   "Android Image Files (*.iso)", options=options)
+
         if self.fileName:
             self.Installbtn.setEnabled(True)
             self.Isonamevar = self.fileName
