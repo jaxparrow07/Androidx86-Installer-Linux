@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 
-import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-import configparser
-import os
 from subprocess import CalledProcessError, check_output
 from random import randint
 import psutil
+import configparser
+import os
+import sys
+
+# 12 Important imports - Some are optimized to minimum imports
+
+
+## Adx86-Installer - Important Variables ##
 
 helptxt = """Select an iso to be installed.
 It must contain a system.img for system to be installed.
@@ -20,6 +25,9 @@ version_name = 'v0.78.0 Beta'
 
 debug=True
 
+
+
+#====== Help Window to Shot helptxt ========#
 class HelpWindow(QWidget):
     def __init__( self ):
         super().__init__()
@@ -56,6 +64,8 @@ class HelpWindow(QWidget):
         self.setFixedWidth(330)
         self.setFixedHeight(330)
 
+
+#====== About Window of Application ========#
 class AboutWindow(QWidget):
     def __init__( self ):
         super( ).__init__( )
@@ -92,6 +102,8 @@ class AboutWindow(QWidget):
         self.setFixedWidth(330)
         self.setFixedHeight(330)
 
+
+#====== Main Window ======#
 class Example(QMainWindow):
 
     def __init__( self, parent=None, frame=QFrame.Box ):
@@ -333,13 +345,15 @@ class Example(QMainWindow):
     def Datachange( self ):
         self.Datasizetxt.setText('Data Image Size: %i GB' % (self.Datasize.value()))
 
+
+
     def Extracting(self):
         if self.isExtracting == True:
             if self.fileName != self.prevfile:
-                self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
-                # self.session_id = '/tmp/ax86_44257191'
+                #self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
+                self.session_id = '/tmp/ax86_23381667'
                 self.Bmenuwid.setEnabled(False)
-                os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
+                #os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
             else:
                 self.session_id = self.prevsessionid
 
@@ -508,17 +522,20 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 if not home:
                     # "dd if=/dev/zero of=data.img bs=1024 count=1048576"
                     file = 'of=/mnt/tmpadvin/' + OS_NAME + '/data.img'
+                    file_n = '/mnt/tmpadvin/' + OS_NAME + '/data.img'
                     hdd = psutil.disk_usage('/mnt/tmpadvin/')
                 else:
                     file = 'of=/home/' + OS_NAME + '/data.img'
+                    file_n = '/home/' + OS_NAME + '/data.img'
                     hdd = psutil.disk_usage('/home/')
 
-                bs = 1024
-                count = int(self.Datasize.value() * 1024 * 1024 * 1024)
-                seek = int(self.Datasize.value() * 1024 * 1024)
+                bs = "1048576"
+                bytes_dat = int(self.Datasize.value()) * 1024 * 1024 * 1024
+                count = int(self.Datasize.value()) * 1024
 
+                print("[*] ax86-Installer : Creating Data.img")
 
-                if hdd.free < count:
+                if hdd.free < bytes_dat:
                     print("[!] ax86-Installer : Process Data Create Failed")
                     self.showdialog('Cannot Create data.img', 'Insufficient Space', detailedtext="""
 Space required for Data.img : %d GB
@@ -526,7 +543,7 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
                     return
                 else:
                     try:
-                        output = check_output(["pkexec", "dd", "if=/dev/zero", file, 'bs='+str(bs), 'count=0','seek='+str(seek)])
+                        output = check_output(["pkexec", "dd", "if=/dev/zero", file, 'bs='+bs, 'count='+str(count)])
                         returncode = 0
                     except CalledProcessError as e:
                         output = e.output
@@ -536,6 +553,22 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
                         print("[!] ax86-Installer : Process Data Create Failed")
                         self.showdialog('Cannot Create data.img', 'Data Image creation Failed', 'none')
                         return
+
+                    print("[*] ax86-Installer : Creating Superblocks for Data")
+
+
+                    try:
+                        output = check_output(["pkexec","mkfs.ext4", file_n])
+                        returncode = 0
+                    except CalledProcessError as e:
+                        output = e.output
+                        returncode = e.returncode
+
+                    if returncode != 0:
+                        print("[!] ax86-Installer : Process Data Create Failed")
+                        self.showdialog('Cannot Create data.img', 'Data Image creation Failed on Verificcation', 'none')
+                        return
+
 
 
             # os.system('app/bin/unmounter')
