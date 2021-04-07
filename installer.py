@@ -15,15 +15,36 @@ import sys
 
 ## Adx86-Installer - Important Variables ##
 
-helptxt = """Select an iso to be installed.
-It must contain a system.img for system to be installed.
-Make sure the iso is not broken and downloaded correctly.
+helptxt = """
 
-Install to a specific partition."""
+Please read this if you don't know how to use
 
-version_name = 'v0.78.0 Beta'
+Installation Steps:-
+    * Select a android image file
+    
+    * Choose Filesystem type
+      ( Ext or OtherFS )
+      -> Ext doesn't need data.img
+      
+    * Choose Data Size
+      ( OtherFS Only )
+      
+    * Extracting Iso will take some time
+      based on the filesize
+      
+    * OS Name and version
+      ( Multiple GRUB Entries )
+      -> This will automatically set them
+         if they are specified.
+         You need to set them manually if
+         the don't.
+         
+Note : Currently only for Ubuntu and some debian based distros.
+"""
 
-debug=True
+version_name = 'v1.24 Beta'
+
+debug=False
 
 
 
