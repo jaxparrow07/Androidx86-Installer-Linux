@@ -265,7 +265,6 @@ class Example(QMainWindow):
 
         instspacelay = QVBoxLayout()
         instspacelay.setAlignment(Qt.AlignTop)
-        instspacelay.addWidget(QLabel('Boot Flags: (leave if you don\'t know)'))
 
         self.instspace = QWidget()
         self.instspace.setLayout(instspacelay)
