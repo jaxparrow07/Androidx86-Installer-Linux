@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from subprocess import CalledProcessError, check_output
 from random import randint
-from webbrowser import open
+import webbrowser
 import psutil
 import configparser
 import os
@@ -112,7 +112,7 @@ class AboutWindow(QWidget):
         SG_Name.setFont(QFont('Arial', 11))
 
         def openwebsite():
-            open('https://supreme-gamers.com')
+            webbrowser.open('https://supreme-gamers.com')
 
 
         webbtn = QPushButton('Visit Website')
@@ -140,6 +140,7 @@ class Example(QMainWindow):
     def __init__( self, parent=None, frame=QFrame.Box ):
         super( ).__init__( )
         self.initUI( )
+
 
     def showdialog(self, txtmessage,additionalinfo,detailedtext):
         msg = QMessageBox( )
@@ -393,7 +394,6 @@ class Example(QMainWindow):
         if self.isExtracting == True:
             if self.fileName != self.prevfile:
                 self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
-                #self.session_id = '/tmp/ax86_23381667'
                 self.Bmenuwid.setEnabled(False)
                 os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
             else:
@@ -691,6 +691,7 @@ Free up some space on current partition and try again.""" %(filesize / 1024 / 10
         self.hlpwin = HelpWindow( )
         self.hlpwin.setParent(self, Qt.Window)
         self.hlpwin.show( )
+
 
     def func_quit_all_windows( self ):
         sys.exit( )
