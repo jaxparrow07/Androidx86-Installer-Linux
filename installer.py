@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from subprocess import CalledProcessError, check_output
 from random import randint
-import webbrowser
+from webbrowser import open as web_open
 import psutil
 import configparser
 import os
@@ -112,7 +112,7 @@ class AboutWindow(QWidget):
         SG_Name.setFont(QFont('Arial', 11))
 
         def openwebsite():
-            webbrowser.open('https://supreme-gamers.com')
+            web_open('https://supreme-gamers.com')
 
 
         webbtn = QPushButton('Visit Website')
@@ -564,11 +564,16 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 if not home:
                     file = 'of=/mnt/tmpadvin/' + OS_NAME + '/data.img'
                     file_n = '/mnt/tmpadvin/' + OS_NAME + '/data.img'
+                    os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
                     hdd = psutil.disk_usage('/mnt/tmpadvin/')
+
                 else:
                     file = 'of=/home/' + OS_NAME + '/data.img'
                     file_n = '/home/' + OS_NAME + '/data.img'
+                	DESTINATION = '/home/' + OS_NAME
+                    os.system('touch '+DESTINATION+'/findme')
                     hdd = psutil.disk_usage('/home/')
+
 
                 bs = "1048576"
                 bytes_dat = int(self.Datasize.value()) * 1024 * 1024 * 1024
