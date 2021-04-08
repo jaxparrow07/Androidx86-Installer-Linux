@@ -24,7 +24,13 @@ else
   grep -v '# ${pid} - ax86-installer' $grubconfig > tmpfile && mv tmpfile $grubconfig
   update-grub
   echo 'Removing Files'
-  rm '${path}'/ -r
+
+  if [[ -d '${path}/data' ]];then
+  chattr -R -i '${path}/data'
+  fi
+
+  rm '${path}/' -r
+
   echo 'Successfully Uninstalled $osname'
 fi"
 
@@ -39,7 +45,25 @@ else
   echo 'Removing GRUB Entry'
   grep -v '# ${pid} - ax86-installer' $grubconfig > tmpfile && mv tmpfile $grubconfig
   update-grub
-  echo 'Cannot Remove files : Remove this folder manually'
+
+  if [[ \`dirname \"\$0\"\` != '.' ]];then
+      folder=\`dirname \"\$0\"\`
+   else
+	    folder=\`pwd\`
+  fi
+
+
+  echo 'Removing Files'
+  if [[ -d \"\${folder}/data\" ]];then
+
+  chattr -R -i \"\${folder}/data\"
+
+  fi
+
+  rm \"\${folder}/\" -r
+
+  echo 'Successfully Uninstalled $osname'
+
 fi"
 
 if [[ $4 != "home" ]];then
