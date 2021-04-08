@@ -20,8 +20,8 @@ https://github.com/AXIM0S/advanced-android-x86-win-installer-dev
 ### To-do
 - [ ] Asynchronous tasks
 - [ ] Optimized Native ISO extraction
-- [* ] Data Image Creation
-- [* ] GRUB Entry Adding
+- [*] Data Image Creation
+- [*] GRUB Entry Adding
 
 ### Other Notes
 This is still in beta has a lot of bugs and dirty code. I will fix them before publishing
