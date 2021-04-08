@@ -662,9 +662,9 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
             x = msg.exec_( )  # this will show our messagebox
 
             if not self.c_home:
-                cmd_list = ["pkexec", "/usr/share/androidx86-installer/bin/grub-modify",OS_NAME,'ncpart']
+                cmd_list = ["pkexec", "/usr/share/androidx86-installer/bin/grub-modify",OS_NAME,'ncpart',self.session_id]
             else:
-                cmd_list = ["pkexec", "/usr/share/androidx86-installer/bin/grub-modify", OS_NAME,"cpart"]
+                cmd_list = ["pkexec", "/usr/share/androidx86-installer/bin/grub-modify", OS_NAME,"cpart",self.session_id]
 
             try:
                 output = check_output(cmd_list)
@@ -677,6 +677,24 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
                 print("[!] ax86-Installer : GRUB Entry Creation Failed")
                 self.showdialog('Cannot Add GRUB Entry', 'There was an error when adding GRUB entry', 'none')
                 return
+
+            if not home:
+                DESTINATION = '/mnt/tmpadvin/' + OS_NAME
+                cmd_list1 = ["pkexec", "/usr/share/androidx86-installer/bin/gen_unins",OS_NAME,DESTINATION,self.session_id,"o_part"]
+            else:
+                DESTINATION = '/home/' + OS_NAME
+                cmd_list1 = ["pkexec", "/usr/share/androidx86-installer/bin/gen_unins", OS_NAME,DESTINATION,self.session_id,"home"]
+
+            try:
+                output = check_output(cmd_list1)
+                returncode = 0
+            except CalledProcessError as e:
+                output = e.output
+                returncode = e.returncode
+
+            if returncode != 0:
+                print("[!] ax86-Installer : Uninstallation script creation Failed")
+                self.showdialog('Cannot create Uninstallation Script', 'There was an error when creating unins script', 'none')
 
 
             self.install_done(OS_NAME)
