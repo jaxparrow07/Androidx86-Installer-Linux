@@ -12,7 +12,7 @@ import os
 import sys
 
 
-# 12 Important imports - Some are optimized to minimum imports
+# 10 Important imports - Some are optimized to minimum imports
 
 
 ## Adx86-Installer - Important Variables ##
@@ -88,6 +88,7 @@ class HelpWindow(QWidget):
         self.setFixedHeight(330)
 
 
+
 #====== About Window of Application ========#
 class AboutWindow(QWidget):
     def __init__( self ):
@@ -132,6 +133,8 @@ class AboutWindow(QWidget):
         self.setGeometry(570, 190, 330, 330)
         self.setFixedWidth(330)
         self.setFixedHeight(330)
+
+
 
 
 #====== Main Window ======#
@@ -354,6 +357,9 @@ class Example(QMainWindow):
         self.show( )
 
 
+
+
+
     def changemethod( self ):
         if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
             self.Datasize.setVisible(False)
@@ -395,6 +401,14 @@ class Example(QMainWindow):
             if self.fileName != self.prevfile:
                 self.session_id = '/tmp/'+'ax86_'+str(randint(100000,99999999))
                 self.Bmenuwid.setEnabled(False)
+
+                msg = QMessageBox( )
+                msg.setWindowTitle("Info")
+                msg.setText("Please Wait until it extracts iso... Ok to Proceed")
+                msg.setFixedWidth(250)
+                msg.setFixedHeight(100)
+                x = msg.exec_( )  # this will show our messagebox
+
                 os.system("7z x '%s' -o%s -aoa" % (self.Isonamevar, self.session_id))
             else:
                 self.session_id = self.prevsessionid
@@ -570,7 +584,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 else:
                     file = 'of=/home/' + OS_NAME + '/data.img'
                     file_n = '/home/' + OS_NAME + '/data.img'
-                	DESTINATION = '/home/' + OS_NAME
+                    DESTINATION = '/home/' + OS_NAME
                     os.system('touch '+DESTINATION+'/findme')
                     hdd = psutil.disk_usage('/home/')
 
@@ -588,6 +602,14 @@ Space required for Data.img : %d GB
 Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 1024 ))
                     return
                 else:
+
+                    msg = QMessageBox( )
+                    msg.setWindowTitle("Info")
+                    msg.setText("Please Wait until it creates Data img... Ok to Proceed")
+                    msg.setFixedWidth(250)
+                    msg.setFixedHeight(100)
+                    x = msg.exec_( )  # this will show our messagebox
+
                     try:
                         output = check_output(["pkexec", "dd", "if=/dev/zero", file, 'bs='+bs, 'count='+str(count)])
                         returncode = 0
@@ -632,6 +654,12 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
                     return
 
             print("[*] ax86-Installer : Creating GRUB Entries")
+            msg = QMessageBox( )
+            msg.setWindowTitle("Info")
+            msg.setText("Please Wait until it creates Grub Entry... Ok to Proceed")
+            msg.setFixedWidth(250)
+            msg.setFixedHeight(100)
+            x = msg.exec_( )  # this will show our messagebox
 
             if not self.c_home:
                 cmd_list = ["pkexec", "/usr/share/androidx86-installer/bin/grub-modify",OS_NAME,'ncpart']
@@ -662,6 +690,7 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
         self.fileName, _ = QFileDialog.getOpenFileName(self, "Select an Android image", "",
                                                   "Android Image Files (*.iso)", options=options)
 
+
         if self.fileName:
             self.Installbtn.setEnabled(True)
             self.Isonamevar = self.fileName
@@ -675,9 +704,10 @@ Space Available : %0.2f GB""" %(self.Datasize.value(), hdd.free / 1024 / 1024 / 
             self.selectediso.setText('Iso : None')
             self.Isonamevar = 'None'
 
+
         if self.fileName:
             filesize = os.path.getsize(self.fileName)
-            cp_space = psutil.disk_usage('/home/')
+            cp_space = psutil.disk_usage('/tmp/')
             if cp_space.free < filesize:
                 self.Installbtn.setEnabled(False)
                 print("[!] ax86-Installer : Not Enough Space to extract file")
@@ -692,10 +722,13 @@ Free up some space on current partition and try again.""" %(filesize / 1024 / 10
         self.abtwin.setParent(self, Qt.Window)
         self.abtwin.show( )
 
+
+
     def OpenHelp( self ):
         self.hlpwin = HelpWindow( )
         self.hlpwin.setParent(self, Qt.Window)
         self.hlpwin.show( )
+
 
 
     def func_quit_all_windows( self ):
