@@ -4,6 +4,8 @@
 # Copyright (C) 2021
 # Must be run as root
 
+# TODO(Easy): Geting this job done with native python functions instead.
+
 grubconfig="/etc/grub.d/40_custom"
 
 if [[ $2 != "cpart" ]];then
