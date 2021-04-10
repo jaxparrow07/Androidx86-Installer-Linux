@@ -635,7 +635,7 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
             if not home:
                 try:
                     output = check_output(
-                        ["umount"])  # Something seems wrong here?
+                        ["umount",mdir])  # Something seems wrong here?
                     returncode = 0
                 except CalledProcessError as e:
                     output = e.output
