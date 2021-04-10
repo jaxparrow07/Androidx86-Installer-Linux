@@ -455,14 +455,9 @@ class Example(QMainWindow):
 
             if not home:
                 try:
-                    output = check_output(
-                        ["pkexec", "/usr/share/androidx86-installer/bin/unmounter", partition])
-                    returncode = 0
-                except CalledProcessError as e:
-                    output = e.output
-                    returncode = e.returncode
-
-                if returncode != 0:
+                    check_output(
+                        ["umount", partition])
+                except:
                     print("[!] ax86-Installer : Process Unmount Failed")
                     self.showdialog(
                         'Cannot Unmount', 'Unmounting Failed to some reasons', 'none')
@@ -471,18 +466,16 @@ class Example(QMainWindow):
             # os.system('app/bin/mounter ' + partition)
             if not home:
                 try:
-                    output = check_output(
-                        ["pkexec", "/usr/share/androidx86-installer/bin/mounter", partition])
-                    returncode = 0
-                except CalledProcessError as e:
-                    output = e.output
-                    returncode = e.returncode
-
-                if returncode != 0:
+                    mdir = "/mnt/tmpadvin"
+                    os.makedirs(mdir, exist_ok=True)
+                    check_output(
+                        ["mount", "-o", "loop", partition, mdir])
+                except:
                     print("[!] ax86-Installer : Process Mount Failed")
                     self.showdialog(
                         'Cannot Mount', 'Mounting cancelled by user', 'none')
                     return
+
             if not home:
                 hdd = psutil.disk_usage('/mnt/tmpadvin/')
             else:
@@ -639,11 +632,10 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
                             'Cannot Create data.img', 'Data Image creation Failed on Verificcation', 'none')
                         return
 
-            # os.system('app/bin/unmounter')
             if not home:
                 try:
                     output = check_output(
-                        ["pkexec", "/usr/share/androidx86-installer/bin/unmounter"])
+                        ["umount"])  # Something seems wrong here?
                     returncode = 0
                 except CalledProcessError as e:
                     output = e.output
