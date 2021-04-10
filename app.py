@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""Top-level script to invoke app implementation."""
+
 import sys
 import app.main
 
