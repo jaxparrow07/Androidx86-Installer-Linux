@@ -605,7 +605,8 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
 
                     try:
                         output = check_output(
-                            ["pkexec", "dd", "if=/dev/zero", file, 'bs='+bs, 'count='+str(count)])
+                            ["pkexec", "dd", "if=/dev/zero", file, 'bs='+bs, 'count=0', 'seek='+str(count)]
+                            )
                         returncode = 0
                     except CalledProcessError as e:
                         output = e.output
