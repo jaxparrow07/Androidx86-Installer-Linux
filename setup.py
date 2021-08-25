@@ -18,7 +18,7 @@ setup(
                             #   like 'app[foo]'
     package_data = {"app": ["VERSION.txt"]},
     author="Jaxparrow",
-    author_email = "jaxsparrow.email@gmail.com",
+    author_email = "jackandrichardjunior@gmail.com",
     description = "A GUI android-x86 installer for the Linux platform",
     license = "Apache 2.0",
     keywords= "android-x86",
