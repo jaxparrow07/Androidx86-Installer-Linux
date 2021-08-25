@@ -53,6 +53,27 @@ version_name = open(fetchResource("app/VERSION.txt"), "r").read()
 debug = False
 
 
+def clickable(widget):
+    class Filter(QObject):
+
+        clicked = pyqtSignal()
+
+        def eventFilter(self, obj, event):
+
+            if obj == widget:
+                if event.type() == QEvent.MouseButtonRelease:
+                    if obj.rect().contains(event.pos()):
+                        self.clicked.emit()
+                        # The developer can opt for .emit(obj) to get the object within the slot.
+                        return True
+
+            return False
+
+    filter = Filter(widget)
+    widget.installEventFilter(filter)
+    return filter.clicked
+
+
 #====== Help Window to Shot helptxt ========#
 class HelpWindow(QWidget):
     def __init__(self):
@@ -103,6 +124,7 @@ class AboutWindow(QWidget):
         Pixmap_label.setPixmap(pixmap)
         Pixmap_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(Pixmap_label)
+        self.setAcceptDrops(True)
 
         version_app = QLabel(version_name)
         version_app.setAlignment(Qt.AlignCenter)
@@ -137,9 +159,45 @@ class AboutWindow(QWidget):
 #====== Main Window ======#
 class Example(QMainWindow):
 
+
     def __init__(self, parent=None, frame=QFrame.Box):
         super().__init__()
         self.initUI()
+        self.setAcceptDrops(True)
+
+
+
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        files = [u.toLocalFile() for u in event.mimeData().urls()]
+        self.fileName = files[0]
+
+
+        if '.iso' in self.fileName:
+            self.Pixmap_label.setPixmap(self.iso_loaded)
+            if self.fileName:
+                self.Installbtn.setEnabled(True)
+                self.Isonamevar = self.fileName
+
+                if len(self.fileName) > 35:
+                    self.selectediso.setText('Iso : %s... (%0.2f GB)' % (
+                        self.fileName[0:35], os.path.getsize(self.fileName) / 1024 / 1024 / 1024))
+
+                    self.DropFile.setText('Iso : %s... (%0.2f GB)' % (
+                        self.fileName[0:35], os.path.getsize(self.fileName) / 1024 / 1024 / 1024))
+                else:
+                    self.selectediso.setText('Iso : %s' % (self.fileName))
+
+            else:
+                self.Installbtn.setEnabled(False)
+                self.selectediso.setText('Iso : None')
+                self.Isonamevar = 'None'
 
     def showdialog(self, txtmessage, additionalinfo, detailedtext):
         msg = QMessageBox()
@@ -215,12 +273,28 @@ class Example(QMainWindow):
 
         # Init Base Layout
         mlayout = QVBoxLayout()
-        mlayout.setAlignment(Qt.AlignTop)
+        mlayout.setAlignment(Qt.AlignCenter)
 
         self.Toplayout = QVBoxLayout()
-        self.Toplayout.setAlignment(Qt.AlignTop)
+        self.Toplayout.setAlignment(Qt.AlignCenter)
 
         # Init Top Layout
+
+        self.drop_here = QPixmap(fetchResource("img/drop_here.png"))
+        self.drop_here = self.drop_here.scaled(70, 70, Qt.KeepAspectRatio)
+
+        self.iso_loaded = QPixmap(fetchResource("img/image_loaded.png"))
+        self.iso_loaded = self.iso_loaded.scaled(70, 70, Qt.KeepAspectRatio)
+
+        self.Pixmap_label = QLabel(self)
+        self.Pixmap_label.setPixmap(self.drop_here)
+        self.Pixmap_label.setAlignment(Qt.AlignCenter)
+
+        clickable(self.Pixmap_label).connect(self.openFileNameDialog)
+
+        self.DropFile = QLabel("Drop file here ( or Click the icon )")
+        self.DropFile.setAlignment(Qt.AlignCenter)
+
         self.selectediso = QLabel('Iso : None')
         self.selectediso.setAlignment(Qt.AlignLeft)
         self.OSNAMEtxt = QLineEdit()
@@ -273,12 +347,23 @@ class Example(QMainWindow):
         self.instspace.setLayout(instspacelay)
         self.instspace.setFixedHeight(180)
 
+        self.Toplayout.addWidget(self.Pixmap_label)
+        self.Toplayout.addWidget(self.DropFile)
+
         self.Installinglayout = QVBoxLayout()
         self.Installinglayout.setAlignment(Qt.AlignTop)
         self.Installinglayout.addWidget(QLabel('OS Name:'))
         self.Installinglayout.addWidget(self.OSNAMEtxt)
         self.Installinglayout.addWidget(QLabel('OS Version:'))
         self.Installinglayout.addWidget(self.OSVERtxt)
+
+        self.Installinglayout.addWidget(QLabel('Filesystem Type:'))
+        self.Installinglayout.addWidget(self.InstallationFS)
+        self.Installinglayout.addWidget(self.Datasizetxt)
+        self.Installinglayout.addWidget(self.Datasize)
+        self.Installinglayout.addWidget(QLabel('Installation Partition:'))
+        self.Installinglayout.addWidget(self.Installationpart)
+
         self.Installinglayout.addWidget(self.instspace)
         self.Installinglayout.addWidget(self.currentfilename)
         self.Installinglayout.addWidget(self.singlefileprog)
@@ -289,14 +374,6 @@ class Example(QMainWindow):
         self.Installingframe.setFrameShape(QFrame.StyledPanel)
         self.Installingframe.setVisible(False)
         self.Installingframe.setFixedHeight(370)
-
-        self.Toplayout.addWidget(self.selectediso)
-        self.Toplayout.addWidget(QLabel('Filesystem Type:'))
-        self.Toplayout.addWidget(self.InstallationFS)
-        self.Toplayout.addWidget(self.Datasizetxt)
-        self.Toplayout.addWidget(self.Datasize)
-        self.Toplayout.addWidget(QLabel('Installation Partition:'))
-        self.Toplayout.addWidget(self.Installationpart)
 
         Bottomlayout = QVBoxLayout()
         Bottomlayout.setAlignment(Qt.AlignCenter)
@@ -336,6 +413,8 @@ class Example(QMainWindow):
         mlayout.addWidget(self.Installingframe)
         mlayout.addWidget(self.installprog)
         mlayout.addWidget(self.Bmenuwid)
+
+
 
         Mainwidget = QWidget()
         Mainwidget.setLayout(mlayout)
@@ -388,23 +467,37 @@ class Example(QMainWindow):
 
     def Extracting(self):
         if self.isExtracting == True:
-            if self.fileName != self.prevfile:
-                self.session_id = '/tmp/'+'ax86_' + \
-                    str(randint(100000, 99999999))
-                self.Bmenuwid.setEnabled(False)
 
-                msg = QMessageBox()
-                msg.setWindowTitle("Info")
-                msg.setText(
-                    "Please Wait until it extracts iso... Ok to Proceed")
-                msg.setFixedWidth(250)
-                msg.setFixedHeight(100)
-                x = msg.exec_()  # this will show our messagebox
+            self.session_id = '/tmp/'+'ax86_mount'
+            self.Bmenuwid.setEnabled(False)
 
-                os.system("7z x '%s' -o%s -aoa" %
-                          (self.Isonamevar, self.session_id))
+
+            if os.path.isdir(self.session_id):
+                try:
+                    output = check_output(["pkexec", "umount", self.session_id])
+                    returncode = 0
+                except CalledProcessError as e:
+                    output = e.output
+                    returncode = e.returncode
+                    return
+
             else:
-                self.session_id = self.prevsessionid
+                 os.mkdir(self.session_id)
+
+
+            try:
+                output = check_output(["pkexec", "mount", "--options","loop",self.Isonamevar,self.session_id])
+                returncode = 0
+            except CalledProcessError as e:
+                output = e.output
+                returncode = e.returncode
+
+            if returncode != 0:
+                print("[!] ax86-Installer : Process Folder Create Failed")
+                self.showdialog(
+                    'Cannot Create Folder', 'Folder Creation cancelled by user', 'none')
+                return
+
 
             if os.path.isfile(self.session_id+'/windows/config.ini'):
                 config = configparser.ConfigParser()
@@ -721,18 +814,6 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
             self.Installbtn.setEnabled(False)
             self.selectediso.setText('Iso : None')
             self.Isonamevar = 'None'
-
-        if self.fileName:
-            filesize = os.path.getsize(self.fileName)
-            cp_space = psutil.disk_usage('/tmp/')
-            if cp_space.free < filesize:
-                self.Installbtn.setEnabled(False)
-                print("[!] ax86-Installer : Not Enough Space to extract file")
-                self.showdialog('Cannot Extract', 'Not enough space on current partition to extract files', detailedtext="""
-Required space for extracting file/filesize : %d MB
-Available space in the current partition : %d MB
-
-Free up some space on current partition and try again.""" % (filesize / 1024 / 1024, cp_space.free / 1024 / 1024))
 
     def OpenAbout(self):
         self.abtwin = AboutWindow()
