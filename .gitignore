@@ -1,7 +1,10 @@
+.gitignore
+.idea
 *.pyc
 *__pycache__*
 /MANIFEST
 /build/
 /deb_dist/
 /dist/
-/helloworld.egg-info/
+*.egg-info/
+venv/
