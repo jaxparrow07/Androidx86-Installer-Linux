@@ -50,7 +50,7 @@ Note : Currently only for Ubuntu and some debian based distros.
 
 #print("Starting app from " + pyroot)
 version_name = open(fetchResource("app/VERSION.txt"), "r").read()
-debug = False
+debug = True
 
 
 def clickable(widget):
@@ -124,7 +124,6 @@ class AboutWindow(QWidget):
         Pixmap_label.setPixmap(pixmap)
         Pixmap_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(Pixmap_label)
-        self.setAcceptDrops(True)
 
         version_app = QLabel(version_name)
         version_app.setAlignment(Qt.AlignCenter)
@@ -255,6 +254,8 @@ class Example(QMainWindow):
         self.isExtracting = True
         self.session_id = ""
         self.prevfile = ""
+        self.isInstalled = False
+        self.globname = ""
 
         ##################   Menubar  #############################
 
@@ -345,10 +346,55 @@ class Example(QMainWindow):
 
         self.instspace = QWidget()
         self.instspace.setLayout(instspacelay)
-        self.instspace.setFixedHeight(180)
+        self.instspace.setFixedHeight(160)
 
         self.Toplayout.addWidget(self.Pixmap_label)
         self.Toplayout.addWidget(self.DropFile)
+
+
+        # Extra Options layout
+
+        self.ExtraOptlayout = QVBoxLayout()
+        self.ExtraOptlayout.setAlignment(Qt.AlignTop)
+        self.ExtraOptlayout.addWidget(QLabel('Optional Configuration'))
+
+        # Custom configurable widgets
+        self.gen_unins_checkbox = QCheckBox("Generate Uninstallation Script")
+        self.gen_unins_checkbox.setChecked(True)
+        self.ExtraOptlayout.addWidget(self.gen_unins_checkbox)
+
+        self.ExtraOptlayout.addWidget(QLabel('GRUB Entry Options'))
+
+        self.create_grub_entry = QCheckBox("Create GRUB Entry")
+        self.create_grub_entry.setChecked(True)
+        self.create_grub_entry.stateChanged.connect(self.Togglegrubsettings)
+        self.ExtraOptlayout.addWidget(self.create_grub_entry)
+
+        self.grub_settings = QVBoxLayout()
+
+        # Custom grub settings
+        self.grubset_use_submenu = QCheckBox("Use Submenu")
+        self.grubset_add_glock = QCheckBox("Gearlock Recovery Modes")
+        self.grubset_useicon = QCheckBox("Use Icon in entries")
+
+
+        self.grub_settings.addWidget(self.grubset_use_submenu)
+        self.grub_settings.addWidget(self.grubset_add_glock)
+        self.grub_settings.addWidget(self.grubset_useicon)
+
+        self.grub_settings_wid = QWidget()
+        self.grub_settings_wid.setLayout(self.grub_settings)
+
+        self.ExtraOptlayout.addWidget(self.grub_settings_wid)
+
+
+        self.ExtraOptframe = QFrame()
+        self.ExtraOptframe.setLayout(self.ExtraOptlayout)
+        self.ExtraOptframe.setFrameShadow(QFrame.Raised)
+        self.ExtraOptframe.setFrameShape(QFrame.StyledPanel)
+        self.ExtraOptframe.setVisible(False)
+        self.ExtraOptframe.setFixedHeight(370)
+
 
         self.Installinglayout = QVBoxLayout()
         self.Installinglayout.setAlignment(Qt.AlignTop)
@@ -411,6 +457,7 @@ class Example(QMainWindow):
         # Adding created widgets
         mlayout.addWidget(self.rightFrame)
         mlayout.addWidget(self.Installingframe)
+        mlayout.addWidget(self.ExtraOptframe)
         mlayout.addWidget(self.installprog)
         mlayout.addWidget(self.Bmenuwid)
 
@@ -445,12 +492,16 @@ class Example(QMainWindow):
         self.prevsessionid = self.session_id
         self.session_id = ""
         self.rightFrame.setVisible(True)
+        self.ExtraOptframe.setVisible(False)
         self.Installingframe.setVisible(False)
         self.Isonamevar = 'None'
         self.isExtracting = True
         self.installprog.setValue(0)
         self.currentfilename.setText('Current file : None')
         self.singlefileprog.setValue(0)
+        self.setAcceptDrops(False)
+        self.DropFile.setText("Drop file here ( or Click the icon )")
+        self.Pixmap_label.setPixmap(self.drop_here)
 
     def input_fields_check(self):
         if not self.isExtracting:
@@ -467,6 +518,8 @@ class Example(QMainWindow):
 
     def Extracting(self):
         if self.isExtracting == True:
+
+            self.setAcceptDrops(False)
 
             self.session_id = '/tmp/'+'ax86_mount'
             self.Bmenuwid.setEnabled(False)
@@ -522,22 +575,37 @@ class Example(QMainWindow):
             self.Installingframe.setVisible(True)
             self.isExtracting = False
 
+
+        elif self.isInstalled:
+            if not self.ExtraOptframe.isVisible():
+                self.ExtraOptions()
+            else:
+                # Complete Installation
+                self.Finish_Install()
+                print("Installation Complete")
+
+        elif debug:
+            self.isInstalled = True
+            print("Skipped File Copy")
+            self.Extracting()
+
         else:
-            # Installing Code
+            files = ['initrd.img','kernel', 'install.img', 'system.sfs',]
 
-            files = ['initrd.img', 'ramdisk.img',
-                     'kernel', 'install.img', 'system.sfs']
+            optional_files = ['gearlock','ramdisk.img']
 
-            if os.path.isfile(self.session_id+'/gearlock'):
-                files.append('gearlock')
+            for opt_file in optional_files:
+                if os.path.isfile(self.session_id+'/'+opt_file):
+                    files.append(opt_file)
 
             to_increase = 100 / len(files)
 
             partition = self.Installationpart.itemText(
                 self.Installationpart.currentIndex())
 
-            OS_NAME = self.OSNAMEtxt.text() + '_' + self.OSVERtxt.text()
+            OS_NAME = self.OSNAMEtxt.text() + '-' + self.OSVERtxt.text()
             OS_NAME.replace(' ', '_')
+            self.globname = OS_NAME
 
             # os.system('app/bin/unmounter ' + partition)
 
@@ -741,59 +809,24 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
                         'Cannot Unmount', 'Unmounting failed due to some reasons', 'none')
                     return
 
-            print("[*] ax86-Installer : Creating GRUB Entries")
+            #print("[*] ax86-Installer : Creating GRUB Entries")
             msg = QMessageBox()
             msg.setWindowTitle("Info")
             msg.setText(
-                "Please Wait until it creates Grub Entry... Ok to Proceed")
+                "You can close the installer now or head to next step")
             msg.setFixedWidth(250)
             msg.setFixedHeight(100)
             x = msg.exec_()  # this will show our messagebox
 
-            ins_id = str(randint(100000, 99999999))
+            #ins_id = str(randint(100000, 99999999))
 
-            if not self.c_home:
-                cmd_list = [
-                    "pkexec", "/usr/share/androidx86-installer/bin/grub-modify", OS_NAME, 'ncpart', ins_id]
-            else:
-                cmd_list = [
-                    "pkexec", "/usr/share/androidx86-installer/bin/grub-modify", OS_NAME, "cpart", ins_id]
+    def Finish_Install(self):
+        self.install_done(self.globname)
 
-            try:
-                output = check_output(cmd_list)
-                returncode = 0
-            except CalledProcessError as e:
-                output = e.output
-                returncode = e.returncode
+    def ExtraOptions(self):
+        self.Installingframe.setVisible(False)
+        self.ExtraOptframe.setVisible(True)
 
-            if returncode != 0:
-                print("[!] ax86-Installer : GRUB Entry Creation Failed")
-                self.showdialog(
-                    'Cannot Add GRUB Entry', 'There was an error when adding GRUB entry', 'none')
-                return
-
-            if not home:
-                DESTINATION = '/mnt/tmpadvin/' + OS_NAME
-                cmd_list1 = ["pkexec", "/usr/share/androidx86-installer/bin/gen_unins",
-                             OS_NAME, DESTINATION, ins_id, "o_part"]
-            else:
-                DESTINATION = '/home/' + OS_NAME
-                cmd_list1 = ["pkexec", "/usr/share/androidx86-installer/bin/gen_unins",
-                             OS_NAME, DESTINATION, ins_id, "home"]
-
-            try:
-                output = check_output(cmd_list1)
-                returncode = 0
-            except CalledProcessError as e:
-                output = e.output
-                returncode = e.returncode
-
-            if returncode != 0:
-                print("[!] ax86-Installer : Uninstallation script creation Failed")
-                self.showdialog('Cannot create Uninstallation Script',
-                                'There was an error when creating unins script', 'none')
-
-            self.install_done(OS_NAME)
 
     def openFileNameDialog(self):
         options = QFileDialog.Options()
@@ -814,6 +847,13 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
             self.Installbtn.setEnabled(False)
             self.selectediso.setText('Iso : None')
             self.Isonamevar = 'None'
+
+    def Togglegrubsettings(self):
+        if self.create_grub_entry.isChecked():
+            self.grub_settings_wid.setEnabled(True)
+        else:
+            self.grub_settings_wid.setEnabled(False)
+
 
     def OpenAbout(self):
         self.abtwin = AboutWindow()
