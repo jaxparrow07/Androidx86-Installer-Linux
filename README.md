@@ -17,12 +17,12 @@ You can find `uninstall.sh` on the installed location of the androidx86. You can
 ![Screenshot_20210409_120320](https://user-images.githubusercontent.com/36300128/114140242-a540d680-992d-11eb-89ff-e6b315e9d90f.png)
 
 
-### To-do
-- [ ] Asynchronous tasks
-- [ ] Optimized Native ISO extraction
+### To-do ( Next Update )
+- [x] Asynchronous tasks [ Threads ]
+- [x] Optimized Native ISO extraction [ Mounting ]
 - [x] Data Image Creation
-- [x] GRUB Entry Adding
-- [x] Uninstallation Script 
+- [ ] GRUB Entry Adding
+- [ ] Uninstallation Script 
 
 ### Other Notes
 *Note : If you are a Android x86 dev or modder and if you create iso for AXON's Advanced x86 Installer. This Installer also supports the config you create*<br>
