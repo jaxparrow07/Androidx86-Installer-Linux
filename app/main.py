@@ -356,6 +356,7 @@ class Example(QMainWindow):
         root = os.popen(
             "df -Th / | head -n 2 | tail -n 1 | awk '{print $1;}'").read()
 
+
         if root != cpart:
             self.c_home = True
             getpart = getpart.replace(cpart, '').replace(root, '')
@@ -637,6 +638,8 @@ class Example(QMainWindow):
             partition = self.Installationpart.itemText(
                 self.Installationpart.currentIndex())
 
+
+
             OS_NAME = self.OSNAMEtxt.text() + '-' + self.OSVERtxt.text()
             OS_NAME.replace(' ', '_')
             self.globname = OS_NAME
@@ -647,38 +650,19 @@ class Example(QMainWindow):
                 home = True
             else:
                 home = False
+                self.mount_point = os.popen("lsblk -o MOUNTPOINT -n " + partition).read() + '/'
 
             self.globhome = home
 
-            if not home:
-                try:
-                    check_output(
-                        ["umount", partition])
-                except:
-                    print("[!] ax86-Installer : Process Unmount Failed")
-                    self.showdialog(
-                        'Cannot Unmount', 'Unmounting Failed to some reasons', 'none')
-                    return
 
             # os.system('app/bin/mounter ' + partition)
-            if not home:
-                try:
-                    mdir = "/mnt/tmpadvin"
-                    self.globmdir = mdir
-                    os.makedirs(mdir, exist_ok=True)
-                    check_output(
-                        ["mount", "-o", "loop", partition, mdir])
-                except:
-                    print("[!] ax86-Installer : Process Mount Failed")
-                    self.showdialog(
-                        'Cannot Mount', 'Mounting cancelled by user', 'none')
-                    return
 
             if not home:
-                hdd = psutil.disk_usage('/mnt/tmpadvin/')
+                hdd = psutil.disk_usage(self.mount_point)
             else:
                 hdd = psutil.disk_usage('/home/')
             filesize = os.path.getsize(self.fileName)
+
             if hdd.free < filesize:
                 print("[!] ax86-Installer : Not Enough Space in " +
                       self.Installationpart.itemText(self.Installationpart.currentIndex))
@@ -690,9 +674,9 @@ Free up some space and retry again.""" % (filesize / 1024 / 1024, self.Installat
                 return
 
             if not home:
-                if not os.path.isdir('/mnt/tmpadvin/'+OS_NAME+'/'):
-                    os.mkdir('/mnt/tmpadvin/'+OS_NAME)
-                    DESTINATION = '/mnt/tmpadvin/' + OS_NAME + '/'
+                if not os.path.isdir(self.mount_point+OS_NAME+'/'):
+                    os.mkdir(self.mount_point+OS_NAME)
+                    DESTINATION = self.mount_point + OS_NAME + '/'
                 else:
                     self.showdialog('Folder Already Exists', 'Folder Creation Failed', detailedtext="""
 The installation folder %s in %s already exists.
@@ -785,9 +769,10 @@ Please rename the folder or use other name in the Os name and Version field""" %
 
     def postInstall(self):
         if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
+
             if not self.globhome:
-                os.mkdir('/mnt/tmpadvin/' + self.globname + '/data')
-                os.system('touch /mnt/tmpadvin/' + self.globname + '/findme')
+                os.mkdir(self.mount_point + self.globname + '/data')
+                os.system('touch '+ self.mount_point + self.globname + '/findme')
 
             else:
                 DESTINATION = '/home/' + self.globname
@@ -795,10 +780,10 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 os.system('touch ' + DESTINATION + '/findme')
         else:
             if not self.globhome:
-                file = 'of=/mnt/tmpadvin/' + self.globname + '/data.img'
-                file_n = '/mnt/tmpadvin/' + self.globname + '/data.img'
-                os.system('touch /mnt/tmpadvin/' + self.globname + '/findme')
-                hdd = psutil.disk_usage('/mnt/tmpadvin/')
+                file = 'of='+ self.mount_point + self.globname + '/data.img'
+                file_n = self.mount_point + self.globname + '/data.img'
+                os.system('touch ' + self.mount_point + self.globname + '/findme')
+                hdd = psutil.disk_usage(self.mount_point)
 
             else:
                 file = 'of=/home/' + self.globname + '/data.img'
@@ -858,21 +843,6 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
                     self.showdialog(
                         'Cannot Create data.img', 'Data Image creation Failed on Verificcation', 'none')
                     return
-
-        if not self.globhome:
-            try:
-                output = check_output(
-                    ["umount", self.globmdir])  # Something seems wrong here?
-                returncode = 0
-            except CalledProcessError as e:
-                output = e.output
-                returncode = e.returncode
-
-            if returncode != 0:
-                print("[!] ax86-Installer : Process Unmount Failed")
-                self.showdialog(
-                    'Cannot Unmount', 'Unmounting failed due to some reasons', 'none')
-                return
 
         # print("[*] ax86-Installer : Creating GRUB Entries")
         msg = QMessageBox()
