@@ -50,9 +50,9 @@ Note : Currently only for Ubuntu and some debian based distros.
 
 #print("Starting app from " + pyroot)
 version_name = open(fetchResource("app/VERSION.txt"), "r").read()
-debug = True
+debug = False
 
-
+# Function to make Widgets clickable
 def clickable(widget):
     class Filter(QObject):
 
@@ -64,15 +64,45 @@ def clickable(widget):
                 if event.type() == QEvent.MouseButtonRelease:
                     if obj.rect().contains(event.pos()):
                         self.clicked.emit()
-                        # The developer can opt for .emit(obj) to get the object within the slot.
                         return True
-
             return False
-
     filter = Filter(widget)
     widget.installEventFilter(filter)
     return filter.clicked
 
+
+class Worker(QObject):
+
+    finished = pyqtSignal()
+    update_stats = pyqtSignal(int, str)
+    update_prog = pyqtSignal(int)
+    update_finish = pyqtSignal()
+
+
+    def __init__(self,files,sessionid,destination):
+        super().__init__()
+        self.files = files
+        self.sessionid = sessionid
+        self.destin = destination
+
+    def run(self):
+        for file in self.files:
+            fsize = int(os.path.getsize(self.sessionid+'/'+file))
+            new = self.destin + file
+            self.update_stats.emit(fsize,file)
+            with open(self.sessionid+'/'+file, 'rb') as f:
+                with open(new, 'ab') as n:
+                    buffer = bytearray()
+                    while True:
+                        buf = f.read(8192)
+                        n.write(buf)
+                        if len(buf) == 0:
+                            break
+                        buffer += buf
+                        # self.singlefileprog.setValue()
+                        self.update_prog.emit(len(buffer))
+            self.update_finish.emit()
+        self.finished.emit()
 
 #====== Help Window to Shot helptxt ========#
 class HelpWindow(QWidget):
@@ -256,6 +286,8 @@ class Example(QMainWindow):
         self.prevfile = ""
         self.isInstalled = False
         self.globname = ""
+        self.globmdir = ""
+        self.globhome = False
 
         ##################   Menubar  #############################
 
@@ -482,9 +514,11 @@ class Example(QMainWindow):
     def changemethod(self):
         if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
             self.Datasize.setVisible(False)
+            self.instspace.setFixedHeight(120)
             self.Datasizetxt.setVisible(False)
         else:
             self.Datasize.setVisible(True)
+            self.instspace.setFixedHeight(0)
             self.Datasizetxt.setVisible(True)
 
     def revertback(self):
@@ -502,6 +536,7 @@ class Example(QMainWindow):
         self.setAcceptDrops(False)
         self.DropFile.setText("Drop file here ( or Click the icon )")
         self.Pixmap_label.setPixmap(self.drop_here)
+        self.Installbtn.setEnabled(False)
 
     def input_fields_check(self):
         if not self.isExtracting:
@@ -580,7 +615,6 @@ class Example(QMainWindow):
             if not self.ExtraOptframe.isVisible():
                 self.ExtraOptions()
             else:
-                # Complete Installation
                 self.Finish_Install()
                 print("Installation Complete")
 
@@ -590,15 +624,16 @@ class Example(QMainWindow):
             self.Extracting()
 
         else:
+            self.Bmenuwid.setEnabled(False)
+
             files = ['initrd.img','kernel', 'install.img', 'system.sfs',]
 
             optional_files = ['gearlock','ramdisk.img']
-
             for opt_file in optional_files:
                 if os.path.isfile(self.session_id+'/'+opt_file):
                     files.append(opt_file)
 
-            to_increase = 100 / len(files)
+            self.to_increase = 100 / len(files)
 
             partition = self.Installationpart.itemText(
                 self.Installationpart.currentIndex())
@@ -614,6 +649,8 @@ class Example(QMainWindow):
             else:
                 home = False
 
+            self.globhome = home
+
             if not home:
                 try:
                     check_output(
@@ -628,6 +665,7 @@ class Example(QMainWindow):
             if not home:
                 try:
                     mdir = "/mnt/tmpadvin"
+                    self.globmdir = mdir
                     os.makedirs(mdir, exist_ok=True)
                     check_output(
                         ["mount", "-o", "loop", partition, mdir])
@@ -698,127 +736,144 @@ Please rename the folder or use other name in the Os name and Version field""" %
                                     'Chmod cancelled by user', 'none')
                     return
 
-            for file in files:
-                fsize = int(os.path.getsize(self.session_id+'/'+file))
-                new = DESTINATION + file
-                self.singlefileprog.setValue(0)
-                self.currentfilename.setText('Current file : %s' % (file))
-                self.singlefileprog.setMaximum(fsize)
-                with open(self.session_id+'/'+file, 'rb') as f:
-                    with open(new, 'ab') as n:
-                        buffer = bytearray()
-                        while True:
-                            buf = f.read(8192)
-                            n.write(buf)
-                            if len(buf) == 0:
-                                break
-                            buffer += buf
-                            self.singlefileprog.setValue(len(buffer))
-                self.installprog.setValue(
-                    self.installprog.value() + int(to_increase))
-            if self.installprog.value() != 100:
-                self.installprog.setValue(100)
 
-            if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
-                if not home:
-                    os.mkdir('/mnt/tmpadvin/' + OS_NAME + '/data')
-                    os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
+                # Here you go f*cking thread.. It literally fricked up my brain fr.. :'(
 
-                else:
-                    DESTINATION = '/home/' + OS_NAME
-                    os.mkdir(DESTINATION + '/data')
-                    os.system('touch '+DESTINATION+'/findme')
+                self.thread = QThread()
+
+                self.worker = Worker(files,self.session_id,DESTINATION)
+                self.worker.moveToThread(self.thread)
+
+                self.thread.started.connect(self.worker.run)
+
+                self.worker.finished.connect(self.thread.quit)
+                self.worker.finished.connect(self.worker.deleteLater)
+                self.thread.finished.connect(self.thread.deleteLater)
+                self.worker.finished.connect(self.thread_finish)
+                self.worker.update_prog.connect(self.thread_progress)
+                self.worker.update_finish.connect(self.thread_mainprog)
+                self.worker.update_stats.connect(self.thread_update)
+                self.thread.start()
+
+
+    def thread_progress(self,int):
+        self.singlefileprog.setValue(int)
+
+    def thread_update(self,fsize,file):
+        self.singlefileprog.setValue(0)
+        self.currentfilename.setText('Current file : %s' % (file))
+        self.singlefileprog.setMaximum(fsize)
+
+    def thread_mainprog(self):
+        self.installprog.setValue(
+            self.installprog.value() + int(self.to_increase))
+
+    def thread_finish(self):
+        if self.installprog.value() != 100:
+            self.installprog.setValue(100)
+        self.postInstall()
+
+    def postInstall(self):
+        if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
+            if not self.globhome:
+                os.mkdir('/mnt/tmpadvin/' + self.globname + '/data')
+                os.system('touch /mnt/tmpadvin/' + self.globname + '/findme')
+
             else:
-                if not home:
-                    file = 'of=/mnt/tmpadvin/' + OS_NAME + '/data.img'
-                    file_n = '/mnt/tmpadvin/' + OS_NAME + '/data.img'
-                    os.system('touch /mnt/tmpadvin/' + OS_NAME + '/findme')
-                    hdd = psutil.disk_usage('/mnt/tmpadvin/')
+                DESTINATION = '/home/' + self.globname
+                os.mkdir(DESTINATION + '/data')
+                os.system('touch ' + DESTINATION + '/findme')
+        else:
+            if not self.globhome:
+                file = 'of=/mnt/tmpadvin/' + self.globname + '/data.img'
+                file_n = '/mnt/tmpadvin/' + self.globname + '/data.img'
+                os.system('touch /mnt/tmpadvin/' + self.globname + '/findme')
+                hdd = psutil.disk_usage('/mnt/tmpadvin/')
 
-                else:
-                    file = 'of=/home/' + OS_NAME + '/data.img'
-                    file_n = '/home/' + OS_NAME + '/data.img'
-                    DESTINATION = '/home/' + OS_NAME
-                    os.system('touch '+DESTINATION+'/findme')
-                    hdd = psutil.disk_usage('/home/')
+            else:
+                file = 'of=/home/' + self.globname + '/data.img'
+                file_n = '/home/' + self.globname + '/data.img'
+                DESTINATION = '/home/' + self.globname
+                os.system('touch ' + DESTINATION + '/findme')
+                hdd = psutil.disk_usage('/home/')
 
-                bs = "1048576"
-                bytes_dat = int(self.Datasize.value()) * 1024 * 1024 * 1024
-                count = int(self.Datasize.value()) * 1024
+            bs = "1048576"
+            bytes_dat = int(self.Datasize.value()) * 1024 * 1024 * 1024
+            count = int(self.Datasize.value()) * 1024
 
-                print("[*] ax86-Installer : Creating Data.img")
+            print("[*] ax86-Installer : Creating Data.img")
 
-                if hdd.free < bytes_dat:
-                    print("[!] ax86-Installer : Process Data Create Failed")
-                    self.showdialog('Cannot Create data.img', 'Insufficient Space', detailedtext="""
+            if hdd.free < bytes_dat:
+                print("[!] ax86-Installer : Process Data Create Failed")
+                self.showdialog('Cannot Create data.img', 'Insufficient Space', detailedtext="""
 Space required for Data.img : %d GB
 Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 / 1024))
-                    return
-                else:
+                return
+            else:
 
-                    msg = QMessageBox()
-                    msg.setWindowTitle("Info")
-                    msg.setText(
-                        "Please Wait until it creates Data img... Ok to Proceed")
-                    msg.setFixedWidth(250)
-                    msg.setFixedHeight(100)
-                    x = msg.exec_()  # this will show our messagebox
+                msg = QMessageBox()
+                msg.setWindowTitle("Info")
+                msg.setText(
+                    "Please Wait until it creates Data img... Ok to Proceed")
+                msg.setFixedWidth(250)
+                msg.setFixedHeight(100)
+                x = msg.exec_()  # this will show our messagebox
 
-                    try:
-                        output = check_output(
-                            ["pkexec", "dd", "if=/dev/zero", file, 'bs='+bs, 'count=0', 'seek='+str(count)]
-                            )
-                        returncode = 0
-                    except CalledProcessError as e:
-                        output = e.output
-                        returncode = e.returncode
-
-                    if returncode != 0:
-                        print("[!] ax86-Installer : Process Data Create Failed")
-                        self.showdialog('Cannot Create data.img',
-                                        'Data Image creation Failed', 'none')
-                        return
-
-                    print("[*] ax86-Installer : Creating Superblocks for Data")
-
-                    try:
-                        output = check_output(["pkexec", "mkfs.ext4", file_n])
-                        returncode = 0
-                    except CalledProcessError as e:
-                        output = e.output
-                        returncode = e.returncode
-
-                    if returncode != 0:
-                        print("[!] ax86-Installer : Process Data Create Failed")
-                        self.showdialog(
-                            'Cannot Create data.img', 'Data Image creation Failed on Verificcation', 'none')
-                        return
-
-            if not home:
                 try:
                     output = check_output(
-                        ["umount",mdir])  # Something seems wrong here?
+                        ["pkexec", "dd", "if=/dev/zero", file, 'bs=' + bs, 'count=0', 'seek=' + str(count)]
+                    )
                     returncode = 0
                 except CalledProcessError as e:
                     output = e.output
                     returncode = e.returncode
 
                 if returncode != 0:
-                    print("[!] ax86-Installer : Process Unmount Failed")
-                    self.showdialog(
-                        'Cannot Unmount', 'Unmounting failed due to some reasons', 'none')
+                    print("[!] ax86-Installer : Process Data Create Failed")
+                    self.showdialog('Cannot Create data.img',
+                                    'Data Image creation Failed', 'none')
                     return
 
-            #print("[*] ax86-Installer : Creating GRUB Entries")
-            msg = QMessageBox()
-            msg.setWindowTitle("Info")
-            msg.setText(
-                "You can close the installer now or head to next step")
-            msg.setFixedWidth(250)
-            msg.setFixedHeight(100)
-            x = msg.exec_()  # this will show our messagebox
+                print("[*] ax86-Installer : Creating Superblocks for Data")
 
-            #ins_id = str(randint(100000, 99999999))
+                try:
+                    output = check_output(["pkexec", "mkfs.ext4", file_n])
+                    returncode = 0
+                except CalledProcessError as e:
+                    output = e.output
+                    returncode = e.returncode
+
+                if returncode != 0:
+                    print("[!] ax86-Installer : Process Data Create Failed")
+                    self.showdialog(
+                        'Cannot Create data.img', 'Data Image creation Failed on Verificcation', 'none')
+                    return
+
+        if not self.globhome:
+            try:
+                output = check_output(
+                    ["umount", self.globmdir])  # Something seems wrong here?
+                returncode = 0
+            except CalledProcessError as e:
+                output = e.output
+                returncode = e.returncode
+
+            if returncode != 0:
+                print("[!] ax86-Installer : Process Unmount Failed")
+                self.showdialog(
+                    'Cannot Unmount', 'Unmounting failed due to some reasons', 'none')
+                return
+
+        # print("[*] ax86-Installer : Creating GRUB Entries")
+        msg = QMessageBox()
+        msg.setWindowTitle("Info")
+        msg.setText(
+            "You can close the installer now or head to next step")
+        msg.setFixedWidth(250)
+        msg.setFixedHeight(100)
+        x = msg.exec_()  # this will show our messagebox
+        self.isInstalled = True
+        self.Bmenuwid.setEnabled(True)
 
     def Finish_Install(self):
         self.install_done(self.globname)
@@ -834,11 +889,15 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.fileName, _ = QFileDialog.getOpenFileName(self, "Select an Android image", "",
                                                        "Android Image Files (*.iso)", options=options)
 
+        self.Pixmap_label.setPixmap(self.iso_loaded)
+
         if self.fileName:
             self.Installbtn.setEnabled(True)
             self.Isonamevar = self.fileName
             if len(self.fileName) > 35:
                 self.selectediso.setText('Iso : %s... (%0.2f GB)' % (
+                    self.fileName[0:35], os.path.getsize(self.fileName) / 1024 / 1024 / 1024))
+                self.DropFile.setText('Iso : %s... (%0.2f GB)' % (
                     self.fileName[0:35], os.path.getsize(self.fileName) / 1024 / 1024 / 1024))
             else:
                 self.selectediso.setText('Iso : %s' % (self.fileName))
