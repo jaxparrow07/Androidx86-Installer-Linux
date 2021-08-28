@@ -20,7 +20,6 @@ def fetchResource(res):
 
 
 ## Adx86-Installer - Important Variables ##
-
 helptxt = """
 
 Please read this if you don't know how to use
@@ -55,9 +54,7 @@ debug = False
 # Function to make Widgets clickable
 def clickable(widget):
     class Filter(QObject):
-
         clicked = pyqtSignal()
-
         def eventFilter(self, obj, event):
 
             if obj == widget:
@@ -69,6 +66,7 @@ def clickable(widget):
     filter = Filter(widget)
     widget.installEventFilter(filter)
     return filter.clicked
+
 
 class DataWorker(QObject):
 
@@ -112,6 +110,18 @@ class DataWorker(QObject):
 
         self.finished.emit()
 
+class GrubWorker(QObject):
+
+    finished = pyqtSignal()
+    on_fail = pyqtSignal()
+
+    def __init__(self):
+        super().__init__()
+
+
+    def run(self):
+        self.finished.emit()
+
 
 
 class Worker(QObject):
@@ -146,6 +156,29 @@ class Worker(QObject):
                         self.update_prog.emit(len(buffer))
             self.update_finish.emit()
         self.finished.emit()
+
+
+class Loader(QWidget):
+    def __init__(self,text):
+        super().__init__()
+        self.setWindowFlag(Qt.WindowCloseButtonHint, False)
+        self.widget = QWidget(self)
+        layout = QVBoxLayout(self)
+
+        helpheading = QLabel(text)
+        pulse_prog = QProgressBar()
+        pulse_prog.setRange(0,0)
+
+        layout.addWidget(helpheading)
+        layout.addWidget(pulse_prog)
+        layout.setAlignment(Qt.AlignCenter)
+
+        self.setLayout(layout)
+
+        self.setWindowTitle('Please Wait')
+        self.setGeometry(570, 190, 330, 330)
+        self.setFixedWidth(330)
+        self.setFixedHeight(120)
 
 #====== Help Window to Shot helptxt ========#
 class HelpWindow(QWidget):
@@ -182,6 +215,7 @@ class HelpWindow(QWidget):
         self.setGeometry(570, 190, 330, 330)
         self.setFixedWidth(330)
         self.setFixedHeight(330)
+
 
 
 #====== About Window of Application ========#
@@ -231,14 +265,13 @@ class AboutWindow(QWidget):
 #====== Main Window ======#
 class Example(QMainWindow):
 
-
     def __init__(self, parent=None, frame=QFrame.Box):
         super().__init__()
         self.initUI()
         self.setAcceptDrops(True)
-
-
-
+        self.loadwin = Loader("Adding Boot Entry")
+        # self.loadwin.setParent(self, Qt.Window)
+        # self.Show_loader()
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -309,6 +342,7 @@ class Example(QMainWindow):
         selectiso.setStatusTip('Select iso file')
         selectiso.triggered.connect(self.openFileNameDialog)
         self.statusBar()
+
 
         AboutAct = QAction(
             QIcon(fetchResource('img/about.png')), '&About', self)
@@ -814,6 +848,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
 
     def postInstall(self):
         if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
+            self.data_create = False
 
             if not self.globhome:
                 os.mkdir(self.mount_point + self.globname + '/data')
@@ -821,7 +856,6 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 output = check_output(
                     ["touch",self.mount_point + self.globname + '/findme' ]
                 )
-
             else:
                 DESTINATION = '/home/' + self.globname
                 os.mkdir(DESTINATION + '/data')
@@ -830,9 +864,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     ["touch",DESTINATION+'/findme' ]
                 )
         else:
-
             self.data_create = True
-
             if not self.globhome:
                 file = 'of='+ self.mount_point + self.globname + '/data.img'
                 file_n = self.mount_point + self.globname + '/data.img'
@@ -851,8 +883,6 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 output = check_output(
                     ["touch",DESTINATION+'/findme' ]
                 )
-
-
 
                 hdd = psutil.disk_usage('/home/')
 
@@ -901,19 +931,20 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
 
 
             # Wait for call back if it creates data image
-            if not self.data_create:
-                # print("[*] ax86-Installer : Creating GRUB Entries")
-                msg = QMessageBox()
-                msg.setWindowTitle("Info")
-                msg.setText(
-                    "You can close the installer now or head to next step")
-                msg.setFixedWidth(250)
-                msg.setFixedHeight(100)
-                x = msg.exec_()  # this will show our messagebox
+        if not self.data_create:
+            # print("[*] ax86-Installer : Creating GRUB Entries")
+            msg = QMessageBox()
+            msg.setWindowTitle("Info")
+            msg.setText(
+                "You can close the installer now or head to next step")
+            msg.setFixedWidth(250)
+            msg.setFixedHeight(100)
+            x = msg.exec_()  # this will show our messagebox
 
-                self.toggle_config(True)
-                self.isInstalled = True
-                self.Bmenuwid.setEnabled(True)
+            self.toggle_config(True)
+            self.isInstalled = True
+            self.Bmenuwid.setEnabled(True)
+
 
     def data_create_finish(self):
         # print("[*] ax86-Installer : Creating GRUB Entries")
@@ -940,6 +971,10 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.showdialog(
             'Cannot Create data.img', 'Data Image creation Failed on Verification', 'none')
         return
+
+    def closeEvent(self, event):
+        self.loadwin.close()
+        event.accept()
 
     def Finish_Install(self):
         self.install_done(self.globname)
@@ -979,6 +1014,9 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         else:
             self.grub_settings_wid.setEnabled(False)
 
+
+    def Show_loader(self):
+        self.loadwin.show()
 
     def OpenAbout(self):
         self.abtwin = AboutWindow()
