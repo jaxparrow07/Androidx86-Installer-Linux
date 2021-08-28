@@ -70,6 +70,49 @@ def clickable(widget):
     widget.installEventFilter(filter)
     return filter.clicked
 
+class DataWorker(QObject):
+
+    finished = pyqtSignal()
+    on_create_fail = pyqtSignal()
+    on_verify_fail = pyqtSignal()
+
+    def __init__(self,file,file_n,bs,count):
+        super().__init__()
+        self.file = file
+        self.file_n = file_n
+        self.bs = bs
+        self.count = count
+
+    def run(self):
+        try:
+            output = check_output(
+                ["pkexec", "dd", "if=/dev/zero", self.file, 'bs=' + self.bs, 'count=0', 'seek=' + self.count]
+            )
+            returncode = 0
+        except CalledProcessError as e:
+            output = e.output
+            returncode = e.returncode
+
+        if returncode != 0:
+            self.on_create_fail.emit()
+            return
+
+        print("[*] ax86-Installer : Creating Superblocks for Data")
+
+        try:
+            output = check_output(["pkexec", "mkfs.ext4", self.file_n])
+            returncode = 0
+        except CalledProcessError as e:
+            output = e.output
+            returncode = e.returncode
+
+        if returncode != 0:
+            self.on_verify_fail.emit()
+            return
+
+        self.finished.emit()
+
+
 
 class Worker(QObject):
 
@@ -650,7 +693,8 @@ class Example(QMainWindow):
                 home = True
             else:
                 home = False
-                self.mount_point = os.popen("lsblk -o MOUNTPOINT -n " + partition).read() + '/'
+                self.mount_point = os.popen("lsblk -o MOUNTPOINT -n " + partition).read()
+                self.mount_point = self.mount_point[:-1] + '/'
 
             self.globhome = home
 
@@ -720,26 +764,27 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     return
 
 
-                # Here you go f*cking thread.. It literally fricked up my brain fr.. :'(
+            # Here you go f*cking thread.. It literally fricked up my brain fr.. :'(
 
 
-                # Disabling the configuration to avoid errors / changes in installation caused by changes in fields
-                self.toggle_config(False)
-                self.thread = QThread()
+            # Disabling the configuration to avoid errors / changes in installation caused by changes in fields
+            self.toggle_config(False)
+            self.thread = QThread()
 
-                self.worker = Worker(files,self.session_id,DESTINATION)
-                self.worker.moveToThread(self.thread)
+            self.worker = Worker(files,self.session_id,DESTINATION)
+            self.worker.moveToThread(self.thread)
 
-                self.thread.started.connect(self.worker.run)
+            self.thread.started.connect(self.worker.run)
 
-                self.worker.finished.connect(self.thread.quit)
-                self.worker.finished.connect(self.worker.deleteLater)
-                self.thread.finished.connect(self.thread.deleteLater)
-                self.worker.finished.connect(self.thread_finish)
-                self.worker.update_prog.connect(self.thread_progress)
-                self.worker.update_finish.connect(self.thread_mainprog)
-                self.worker.update_stats.connect(self.thread_update)
-                self.thread.start()
+            self.worker.finished.connect(self.thread.quit)
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+
+            self.worker.finished.connect(self.thread_finish)
+            self.worker.update_prog.connect(self.thread_progress)
+            self.worker.update_finish.connect(self.thread_mainprog)
+            self.worker.update_stats.connect(self.thread_update)
+            self.thread.start()
 
 
     # Thread Callbacks
@@ -772,24 +817,43 @@ Please rename the folder or use other name in the Os name and Version field""" %
 
             if not self.globhome:
                 os.mkdir(self.mount_point + self.globname + '/data')
-                os.system('touch '+ self.mount_point + self.globname + '/findme')
+                # os.system('touch '+ self.mount_point + self.globname + '/findme')
+                output = check_output(
+                    ["touch",self.mount_point + self.globname + '/findme' ]
+                )
 
             else:
                 DESTINATION = '/home/' + self.globname
                 os.mkdir(DESTINATION + '/data')
-                os.system('touch ' + DESTINATION + '/findme')
+                # os.system('touch ' + DESTINATION + '/findme')
+                output = check_output(
+                    ["touch",DESTINATION+'/findme' ]
+                )
         else:
+
+            self.data_create = True
+
             if not self.globhome:
                 file = 'of='+ self.mount_point + self.globname + '/data.img'
                 file_n = self.mount_point + self.globname + '/data.img'
-                os.system('touch ' + self.mount_point + self.globname + '/findme')
+
+                output = check_output(
+                    ["touch",self.mount_point + self.globname + '/findme' ]
+                )
+
                 hdd = psutil.disk_usage(self.mount_point)
 
             else:
                 file = 'of=/home/' + self.globname + '/data.img'
                 file_n = '/home/' + self.globname + '/data.img'
                 DESTINATION = '/home/' + self.globname
-                os.system('touch ' + DESTINATION + '/findme')
+
+                output = check_output(
+                    ["touch",DESTINATION+'/findme' ]
+                )
+
+
+
                 hdd = psutil.disk_usage('/home/')
 
             bs = "1048576"
@@ -805,7 +869,6 @@ Space required for Data.img : %d GB
 Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 / 1024))
                 return
             else:
-
                 msg = QMessageBox()
                 msg.setWindowTitle("Info")
                 msg.setText(
@@ -814,36 +877,45 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
                 msg.setFixedHeight(100)
                 x = msg.exec_()  # this will show our messagebox
 
-                try:
-                    output = check_output(
-                        ["pkexec", "dd", "if=/dev/zero", file, 'bs=' + bs, 'count=0', 'seek=' + str(count)]
-                    )
-                    returncode = 0
-                except CalledProcessError as e:
-                    output = e.output
-                    returncode = e.returncode
+                self.datathread = QThread()
 
-                if returncode != 0:
-                    print("[!] ax86-Installer : Process Data Create Failed")
-                    self.showdialog('Cannot Create data.img',
-                                    'Data Image creation Failed', 'none')
-                    return
+                self.dataworker = DataWorker(file,file_n,bs,str(count))
+                self.dataworker.moveToThread(self.datathread)
 
-                print("[*] ax86-Installer : Creating Superblocks for Data")
+                self.datathread.started.connect(self.dataworker.run)
 
-                try:
-                    output = check_output(["pkexec", "mkfs.ext4", file_n])
-                    returncode = 0
-                except CalledProcessError as e:
-                    output = e.output
-                    returncode = e.returncode
+                self.dataworker.finished.connect(self.datathread.quit)
+                self.dataworker.finished.connect(self.dataworker.deleteLater)
+                self.datathread.finished.connect(self.datathread.deleteLater)
 
-                if returncode != 0:
-                    print("[!] ax86-Installer : Process Data Create Failed")
-                    self.showdialog(
-                        'Cannot Create data.img', 'Data Image creation Failed on Verificcation', 'none')
-                    return
+                """ 
+                    on_create_fail = pyqtSignal()
+                    on_verify_fail = pyqtSignal()
+                
+                """
 
+                self.dataworker.finished.connect(self.data_create_finish)
+                self.dataworker.on_create_fail.connect(self.data_create_fail)
+                self.dataworker.on_verify_fail.connect(self.data_verify_fail)
+                self.datathread.start()
+
+
+            # Wait for call back if it creates data image
+            if not self.data_create:
+                # print("[*] ax86-Installer : Creating GRUB Entries")
+                msg = QMessageBox()
+                msg.setWindowTitle("Info")
+                msg.setText(
+                    "You can close the installer now or head to next step")
+                msg.setFixedWidth(250)
+                msg.setFixedHeight(100)
+                x = msg.exec_()  # this will show our messagebox
+
+                self.toggle_config(True)
+                self.isInstalled = True
+                self.Bmenuwid.setEnabled(True)
+
+    def data_create_finish(self):
         # print("[*] ax86-Installer : Creating GRUB Entries")
         msg = QMessageBox()
         msg.setWindowTitle("Info")
@@ -857,6 +929,17 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.isInstalled = True
         self.Bmenuwid.setEnabled(True)
 
+    def data_create_fail(self):
+        print("[!] ax86-Installer : Process Data Create Failed")
+        self.showdialog('Cannot Create data.img',
+                        'Data Image creation Failed', 'none')
+        return
+
+    def data_verify_fail(self):
+        print("[!] ax86-Installer : Process Data Create Failed")
+        self.showdialog(
+            'Cannot Create data.img', 'Data Image creation Failed on Verification', 'none')
+        return
 
     def Finish_Install(self):
         self.install_done(self.globname)
