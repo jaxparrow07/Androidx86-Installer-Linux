@@ -287,7 +287,6 @@ class Example(QMainWindow):
         self.isInstalled = False
         self.globname = ""
         self.globmdir = ""
-        self.globhome = False
 
         ##################   Menubar  #############################
 
@@ -739,6 +738,9 @@ Please rename the folder or use other name in the Os name and Version field""" %
 
                 # Here you go f*cking thread.. It literally fricked up my brain fr.. :'(
 
+
+                # Disabling the configuration to avoid errors / changes in installation caused by changes in fields
+                self.toggle_config(False)
                 self.thread = QThread()
 
                 self.worker = Worker(files,self.session_id,DESTINATION)
@@ -756,6 +758,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 self.thread.start()
 
 
+    # Thread Callbacks
     def thread_progress(self,int):
         self.singlefileprog.setValue(int)
 
@@ -772,6 +775,13 @@ Please rename the folder or use other name in the Os name and Version field""" %
         if self.installprog.value() != 100:
             self.installprog.setValue(100)
         self.postInstall()
+
+    def toggle_config(self,state):
+        self.OSNAMEtxt.setEnabled(state)
+        self.OSVERtxt.setEnabled(state)
+        self.InstallationFS.setEnabled(state)
+        self.Installationpart.setEnabled(state)
+        self.Datasize.setEnabled(state)
 
     def postInstall(self):
         if self.InstallationFS.itemText(self.InstallationFS.currentIndex()) == 'Ext':
@@ -872,8 +882,11 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         msg.setFixedWidth(250)
         msg.setFixedHeight(100)
         x = msg.exec_()  # this will show our messagebox
+
+        self.toggle_config(True)
         self.isInstalled = True
         self.Bmenuwid.setEnabled(True)
+
 
     def Finish_Install(self):
         self.install_done(self.globname)
