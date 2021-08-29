@@ -796,11 +796,6 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     self.showdialog('Cannot Own Folder',
                                     'Chmod cancelled by user', 'none')
                     return
-
-
-            # Here you go f*cking thread.. It literally fricked up my brain fr.. :'(
-
-
             # Disabling the configuration to avoid errors / changes in installation caused by changes in fields
             self.toggle_config(False)
             self.thread = QThread()
@@ -881,7 +876,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
                 DESTINATION = '/home/' + self.globname
 
                 output = check_output(
-                    ["touch",DESTINATION+'/findme' ]
+                    ["touch",DESTINATION+'/findme']
                 )
 
                 hdd = psutil.disk_usage('/home/')
@@ -918,12 +913,6 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
                 self.dataworker.finished.connect(self.dataworker.deleteLater)
                 self.datathread.finished.connect(self.datathread.deleteLater)
 
-                """ 
-                    on_create_fail = pyqtSignal()
-                    on_verify_fail = pyqtSignal()
-                
-                """
-
                 self.dataworker.finished.connect(self.data_create_finish)
                 self.dataworker.on_create_fail.connect(self.data_create_fail)
                 self.dataworker.on_verify_fail.connect(self.data_verify_fail)
@@ -932,7 +921,6 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
 
             # Wait for call back if it creates data image
         if not self.data_create:
-            # print("[*] ax86-Installer : Creating GRUB Entries")
             msg = QMessageBox()
             msg.setWindowTitle("Info")
             msg.setText(
@@ -990,9 +978,8 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.fileName, _ = QFileDialog.getOpenFileName(self, "Select an Android image", "",
                                                        "Android Image Files (*.iso)", options=options)
 
-        self.Pixmap_label.setPixmap(self.iso_loaded)
-
         if self.fileName:
+            self.Pixmap_label.setPixmap(self.iso_loaded)
             self.Installbtn.setEnabled(True)
             self.Isonamevar = self.fileName
             if len(self.fileName) > 35:
@@ -1029,6 +1016,7 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.hlpwin.show()
 
     def func_quit_all_windows(self):
+        self.loadwin.close()
         sys.exit()
 
         ############################################################
