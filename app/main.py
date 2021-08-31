@@ -20,6 +20,30 @@ def fetchResource(res):
 
 
 ## Adx86-Installer - Important Variables ##
+
+thanks_to =  """
+<b>AXON</b><br>
+<i>For helping in refactoring the project and fixing a lot of code.</i> <br>
+<br>
+<b>BlissTeam</b><br>
+<i>For supporting the project and promoting it.</i><br>
+<br>
+<b>Sg Bois</b><br>
+<i>For giving suggestions and ideas to improve this project.</i><br>
+"""
+
+libraries_used = """
+    • PyQt5
+
+Note : It uses some linux utils/binaries to work
+"""
+
+about_s1 = """Androidx86 Installer for Linux
+        
+(c) 2021, SupremeGamers
+
+"""
+
 helptxt = """
 
 Please read this if you don't know how to use
@@ -224,42 +248,93 @@ class AboutWindow(QWidget):
         super().__init__()
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
-        layout.addWidget(self.widget)
         pixmap = QPixmap(fetchResource("img/sg_logo.png"))
-        pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio)
-        Pixmap_label = QLabel(self)
+        pixmap = pixmap.scaled(60, 75, Qt.KeepAspectRatio)
+        Pixmap_label = QLabel()
         Pixmap_label.setPixmap(pixmap)
         Pixmap_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(Pixmap_label)
 
-        version_app = QLabel(version_name)
-        version_app.setAlignment(Qt.AlignCenter)
-        version_app.adjustSize()
+        self.scroll_tab3 = QScrollArea()
+        self.scroll_tab3.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scroll_tab3.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll_tab3.setFrameShape(QFrame.NoFrame)
 
-        layout.addWidget(version_app)
+        self.tabs = QTabWidget()
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
+        self.tab3 = self.scroll_tab3
+        self.tabs.resize(300, 120)
 
-        SG_Name = QLabel('Made with time & passion by SupremeGamers')
-        SG_Name.setFont(QFont('Arial', 11))
 
-        def openwebsite():
-            web_open('https://supreme-gamers.com')
 
-        webbtn = QPushButton('Visit Website')
-        webbtn.clicked.connect(openwebsite)
+        self.tabs.addTab(self.tab1, "About")
+        self.tabs.addTab(self.tab2, "Libraries")
+        self.tabs.addTab(self.tab3, "Thanks To")
 
-        layout.addWidget(SG_Name)
-        layout.addWidget(webbtn)
-        layout.addWidget(QLabel(' '))
-        author_name = QLabel('Programmed by Jaxparrow')
-        author_name.setFont(QFont('Arial', 9))
-        author_name.adjustSize()
-        author_name.setAlignment(Qt.AlignCenter)
-        layout.addWidget(author_name)
-        layout.setAlignment(Qt.AlignCenter)
+        self.tab1.layout = QVBoxLayout()
+        self.tab2.layout = QVBoxLayout()
+
+        self.l = QLabel()
+        self.l.setText(about_s1)
+
+        self.site_link = QLabel("<a href=\"https://supreme-gamers.com\">https://supreme-gamers.com</a>")
+        self.site_link.setOpenExternalLinks(True)
+
+        self.license_link = QLabel("<a href=\"0\">License: Will be added later</a>")
+        self.license_link.setOpenExternalLinks(True)
+
+
+
+        # Section Init
+        self.tab1.layout.setAlignment(Qt.AlignTop)
+        self.tab1.layout.addWidget(self.l)
+        self.tab1.layout.addWidget(self.site_link)
+        self.tab1.layout.addWidget(self.license_link)
+        self.tab1.setLayout(self.tab1.layout)
+
+        self.tab2.layout.setAlignment(Qt.AlignTop)
+        self.tab2.layout.addWidget(QLabel(libraries_used))
+        self.tab2.setLayout(self.tab2.layout)
+
+        self.thanks_lbl = QLabel(thanks_to)
+        self.thanks_lbl.setWordWrap(True)
+
+        self.scroll_tab3.setWidget(self.thanks_lbl)
+
+
+        hbox = QHBoxLayout()
+        hbox.addWidget(Pixmap_label)
+        vbox = QVBoxLayout()
+
+        heading = QLabel("Androidx86 Installer")
+        heading.adjustSize()
+        heading.setFixedWidth(330)
+        heading.setFont(QFont('Arial', 13))
+        heading.setWordWrap(True)
+
+        vbox.addWidget(heading)
+        vbox.addWidget(QLabel(version_name))
+
+        hbox.addLayout(vbox)
+
+
+        close_box = QHBoxLayout()
+
+        self.close_btn = QPushButton("Close")
+        self.close_btn.clicked.connect(self.close)
+
+        close_box.addWidget(self.close_btn)
+        close_box.setAlignment(Qt.AlignRight)
+
+        layout.addLayout(hbox)
+        layout.addWidget(self.tabs)
+        layout.addLayout(close_box)
+
+        self.setLayout(layout)
         self.setWindowTitle('About')
-        self.setGeometry(570, 190, 330, 330)
+        self.setGeometry(570, 190, 330, 200)
         self.setFixedWidth(330)
-        self.setFixedHeight(330)
+        self.setFixedHeight(280)
 
 
 #====== Main Window ======#
