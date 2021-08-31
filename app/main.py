@@ -25,7 +25,7 @@ thanks_to =  """
 <b>AXON</b><br>
 <i>For helping in refactoring the project and fixing a lot of code.</i> <br>
 <br>
-<b>BlissTeam</b><br>
+<b>Team Bliss</b><br>
 <i>For supporting the project by promoting it.</i><br>
 <br>
 <b>Manky201 and Xtr ( Xttt )</b><br>
@@ -248,8 +248,8 @@ class AboutWindow(QWidget):
         super().__init__()
         self.widget = QWidget(self)
         layout = QVBoxLayout(self)
-        pixmap = QPixmap(fetchResource("img/sg_logo.png"))
-        pixmap = pixmap.scaled(60, 75, Qt.KeepAspectRatio)
+        pixmap = QPixmap(fetchResource("img/mini_logo.png"))
+        pixmap = pixmap.scaled(60, 60, Qt.KeepAspectRatio)
         Pixmap_label = QLabel()
         Pixmap_label.setPixmap(pixmap)
         Pixmap_label.setAlignment(Qt.AlignCenter)
@@ -263,7 +263,7 @@ class AboutWindow(QWidget):
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = self.scroll_tab3
-        self.tabs.resize(300, 120)
+        self.tabs.resize(300, 130)
 
 
 
@@ -274,20 +274,18 @@ class AboutWindow(QWidget):
         self.tab1.layout = QVBoxLayout()
         self.tab2.layout = QVBoxLayout()
 
-        self.l = QLabel()
-        self.l.setText(about_s1)
+
+        self.main_about = QLabel(about_s1)
 
         self.site_link = QLabel("<a href=\"https://supreme-gamers.com\">https://supreme-gamers.com</a>")
         self.site_link.setOpenExternalLinks(True)
 
-        self.license_link = QLabel("<a href=\"0\">License: Will be added later</a>")
+        self.license_link = QLabel("<a href=\"https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html\">License: GNU General Public License Version 2</a>")
         self.license_link.setOpenExternalLinks(True)
-
-
 
         # Section Init
         self.tab1.layout.setAlignment(Qt.AlignTop)
-        self.tab1.layout.addWidget(self.l)
+        self.tab1.layout.addWidget(self.main_about)
         self.tab1.layout.addWidget(self.site_link)
         self.tab1.layout.addWidget(self.license_link)
         self.tab1.setLayout(self.tab1.layout)
@@ -338,7 +336,7 @@ class AboutWindow(QWidget):
         self.setWindowTitle('About')
         self.setGeometry(570, 190, 330, 200)
         self.setFixedWidth(330)
-        self.setFixedHeight(280)
+        self.setFixedHeight(290)
 
 
 #====== Main Window ======#
