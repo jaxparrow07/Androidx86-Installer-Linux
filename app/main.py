@@ -26,10 +26,10 @@ thanks_to =  """
 <i>For helping in refactoring the project and fixing a lot of code.</i> <br>
 <br>
 <b>BlissTeam</b><br>
-<i>For supporting the project and promoting it.</i><br>
+<i>For supporting the project by promoting it.</i><br>
 <br>
-<b>Sg Bois</b><br>
-<i>For giving suggestions and ideas to improve this project.</i><br>
+<b>Manky201 and Xtr ( Xttt )</b><br>
+<i>For giving suggestions and ideas in Mounting and Image creation.</i><br>
 """
 
 libraries_used = """
@@ -297,7 +297,11 @@ class AboutWindow(QWidget):
         self.tab2.setLayout(self.tab2.layout)
 
         self.thanks_lbl = QLabel(thanks_to)
+        self.thanks_lbl.setFixedWidth(280)
         self.thanks_lbl.setWordWrap(True)
+
+        #self.scrl_lt = QVBoxLayout()
+        #self.scrl_lt.addWidget(self.thanks_lbl)
 
         self.scroll_tab3.setWidget(self.thanks_lbl)
 
