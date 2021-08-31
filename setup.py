@@ -20,7 +20,7 @@ setup(
     author="Jaxparrow",
     author_email = "jackandrichardjunior@gmail.com",
     description = "A GUI android-x86 installer for the Linux platform",
-    license = "Apache 2.0",
+    license = "GPL-2.0",
     keywords= "android-x86",
     url = "https://github.com/jaxparrow07/Androidx86-Installer-Linux",
     entry_points = {
