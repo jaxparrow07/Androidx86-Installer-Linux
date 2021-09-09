@@ -13,14 +13,12 @@ import sys
 
 
 # 10 Important imports - Some are optimized to minimum imports
-
 def fetchResource(res):
     pyroot = os.path.dirname(os.path.dirname(__file__))
     return pyroot + '/' + res
 
 
 ## Adx86-Installer - Important Variables ##
-
 thanks_to =  """
 <b>AXON</b><br>
 <i>For helping in refactoring the project and fixing a lot of code.</i> <br>
@@ -137,19 +135,6 @@ class DataWorker(QObject):
             return
 
         self.finished.emit()
-
-class GrubWorker(QObject):
-
-    finished = pyqtSignal()
-    on_fail = pyqtSignal()
-
-    def __init__(self):
-        super().__init__()
-
-
-    def run(self):
-        self.finished.emit()
-
 
 
 class Worker(QObject):
@@ -558,14 +543,14 @@ class Example(QMainWindow):
         self.grub_settings = QVBoxLayout()
 
         # Custom grub settings
-        self.grubset_use_submenu = QCheckBox("Use Submenu")
-        self.grubset_add_glock = QCheckBox("Gearlock Recovery Modes")
-        self.grubset_useicon = QCheckBox("Use Icon in entries")
+        #self.grubset_use_submenu = QCheckBox("Use Submenu")
+        #self.grubset_add_glock = QCheckBox("Gearlock Recovery Modes")
+        #self.grubset_useicon = QCheckBox("Use Icon in entries")
 
 
-        self.grub_settings.addWidget(self.grubset_use_submenu)
-        self.grub_settings.addWidget(self.grubset_add_glock)
-        self.grub_settings.addWidget(self.grubset_useicon)
+        #self.grub_settings.addWidget(self.grubset_use_submenu)
+        #self.grub_settings.addWidget(self.grubset_add_glock)
+        #self.grub_settings.addWidget(self.grubset_useicon)
 
         self.grub_settings_wid = QWidget()
         self.grub_settings_wid.setLayout(self.grub_settings)
@@ -768,7 +753,7 @@ class Example(QMainWindow):
             if not self.ExtraOptframe.isVisible():
                 self.ExtraOptions()
             else:
-                self.Finish_Install()
+                self.extra_opt()
                 print("Installation Complete")
 
         elif debug:
@@ -779,7 +764,16 @@ class Example(QMainWindow):
         else:
             self.Bmenuwid.setEnabled(False)
 
-            files = ['initrd.img','kernel', 'install.img', 'system.sfs',]
+            files = ['initrd.img','kernel', 'install.img', 'system.sfs']
+
+            ## Necessary files checking
+            for nes_file in files:
+                if not os.path.isfile(self.session_id+'/'+nes_file):
+                    print("[!] ax86-Installer : Process Data Create Failed")
+                    self.showdialog('Invalid Iso',
+                                    'Important file missing', detailedtext="""
+Missing file : %s""" % (nes_file))
+                    return
 
             optional_files = ['gearlock','ramdisk.img']
             for opt_file in optional_files:
@@ -872,6 +866,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     self.showdialog('Cannot Own Folder',
                                     'Chmod cancelled by user', 'none')
                     return
+
             # Disabling the configuration to avoid errors / changes in installation caused by changes in fields
             self.toggle_config(False)
             self.thread = QThread()
@@ -995,7 +990,7 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
                 self.datathread.start()
 
 
-            # Wait for call back if it creates data image
+        # Will continue installtion if data image is not created otherwise it will wait for callback
         if not self.data_create:
             msg = QMessageBox()
             msg.setWindowTitle("Info")
@@ -1035,6 +1030,21 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.showdialog(
             'Cannot Create data.img', 'Data Image creation Failed on Verification', 'none')
         return
+
+    def extra_opt(self):
+
+        # Write code to generate Grub entry and Uninstallation
+
+        if (self.create_grub_entry.isChecked()):
+            # Code to create grub entry
+            print("Creating grub entry")
+
+        if (self.gen_unins_checkbox.isChecked()):
+            # Code to generate uninstallation script
+            print("Generating Uninstallation Script")
+
+        # Finish installation if none
+        self.Finish_Install()
 
     def closeEvent(self, event):
         self.loadwin.close()
