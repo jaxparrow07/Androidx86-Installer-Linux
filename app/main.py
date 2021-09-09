@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from subprocess import CalledProcessError, check_output
 from random import randint
-from webbrowser import open as web_open
+# from webbrowser import open as web_open
 import psutil
 import configparser
 import os
@@ -32,10 +32,14 @@ thanks_to =  """
 <i>For giving suggestions and ideas in Mounting and Image creation.</i><br>
 """
 
-libraries_used = """
-    • PyQt5
+libraries_used = """Python modules:
 
-Note : It uses some linux utils/binaries to work
+    • PyQt5
+    • subprocess
+    • configparser
+    • psutil
+
+Uses some linux binaries too
 """
 
 about_s1 = """Androidx86 Installer for Linux
@@ -405,24 +409,19 @@ class Example(QMainWindow):
 
     def initUI(self):
         self.setAttribute(Qt.WA_DeleteOnClose, True)
-        # Adding Side Options in Menu
-
         exitAct = QAction(QIcon(fetchResource('img/exit.png')), '&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
         self.statusBar()
 
-        selectiso = QAction(
-            QIcon(fetchResource('img/iso.png')), '&Select iso', self)
+        selectiso = QAction(QIcon(fetchResource('img/iso.png')), '&Select iso', self)
         selectiso.setShortcut('Ctrl+F')
         selectiso.setStatusTip('Select iso file')
         selectiso.triggered.connect(self.openFileNameDialog)
         self.statusBar()
 
-
-        AboutAct = QAction(
-            QIcon(fetchResource('img/about.png')), '&About', self)
+        AboutAct = QAction(QIcon(fetchResource('img/about.png')), '&About', self)
         AboutAct.setShortcut('Ctrl+A')
         AboutAct.setStatusTip('About application')
         AboutAct.triggered.connect(self.OpenAbout)
@@ -455,7 +454,7 @@ class Example(QMainWindow):
         helpMenu.addAction(HelpAct)
         helpMenu.addAction(AboutAct)
 
-        ###################   MainUI   #############################
+        ##################   MainUI   #############################
 
         # Init Base Layout
         mlayout = QVBoxLayout()
