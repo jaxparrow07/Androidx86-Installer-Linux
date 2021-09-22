@@ -1034,7 +1034,6 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
     def extra_opt(self):
 
         # Write code to generate Grub entry and Uninstallation
-
         if (self.create_grub_entry.isChecked()):
             # Code to create grub entry
             print("Creating grub entry")
