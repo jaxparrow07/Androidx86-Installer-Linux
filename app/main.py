@@ -10,13 +10,13 @@ import psutil
 import configparser
 import os
 import sys
+import app.utils as app_utils
 
 
 # 10 Important imports - Some are optimized to minimum imports
+pyroot = os.path.dirname(os.path.dirname(__file__))
 def fetchResource(res):
-    pyroot = os.path.dirname(os.path.dirname(__file__))
     return pyroot + '/' + res
-
 
 ## Adx86-Installer - Important Variables ##
 thanks_to =  """
@@ -335,9 +335,7 @@ class Example(QMainWindow):
         super().__init__()
         self.initUI()
         self.setAcceptDrops(True)
-        self.loadwin = Loader("Adding Boot Entry")
-        # self.loadwin.setParent(self, Qt.Window)
-        # self.Show_loader()
+        self.Utils = app_utils.Utils(pyroot)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -671,10 +669,13 @@ class Example(QMainWindow):
         self.installprog.setValue(0)
         self.currentfilename.setText('Current file : None')
         self.singlefileprog.setValue(0)
-        self.setAcceptDrops(False)
+        self.setAcceptDrops(True)
         self.DropFile.setText("Drop file here ( or Click the icon )")
         self.Pixmap_label.setPixmap(self.drop_here)
         self.Installbtn.setEnabled(False)
+        self.isInstalled = False
+        self.OSNAMEtxt.setText("")
+        self.OSVERtxt.setText("")
 
     def input_fields_check(self):
         if not self.isExtracting:
@@ -992,18 +993,21 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
 
         # Will continue installtion if data image is not created otherwise it will wait for callback
         if not self.data_create:
-            msg = QMessageBox()
-            msg.setWindowTitle("Info")
-            msg.setText(
-                "You can close the installer now or head to next step")
-            msg.setFixedWidth(250)
-            msg.setFixedHeight(100)
-            x = msg.exec_()  # this will show our messagebox
-
+            self.show_notifier("Info","You can close the installer now or head to next step")
             self.toggle_config(True)
             self.isInstalled = True
             self.Bmenuwid.setEnabled(True)
 
+
+
+
+    def show_notifier(self,title,message):
+        msg = QMessageBox()
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        msg.setFixedWidth(250)
+        msg.setFixedHeight(100)
+        x = msg.exec_()  # this will show our messagebox
 
     def data_create_finish(self):
         # print("[*] ax86-Installer : Creating GRUB Entries")
@@ -1031,15 +1035,28 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
             'Cannot Create data.img', 'Data Image creation Failed on Verification', 'none')
         return
 
+    def grub_fail_call(self):
+        self.show_notifier("Info","Error: Grub entry not created")
+
     def extra_opt(self):
+
+        u_process = randint(10000,999999)
 
         # Write code to generate Grub entry and Uninstallation
         if (self.create_grub_entry.isChecked()):
-            # Code to create grub entry
-            print("Creating grub entry")
 
+            self.loadwin = Loader("Adding Boot Entry")
+            self.loadwin.setParent(self, Qt.Window)
+            self.Show_loader()
+            ret_val = self.Utils.GenGrubEntry(self.globname,self.globhome,str(u_process))
+            self.loadwin.close()
+
+            if ret_val == False:
+                self.show_notifier("Info","Error: Unable to create GRUB entry")
+            
         if (self.gen_unins_checkbox.isChecked()):
             # Code to generate uninstallation script
+
             print("Generating Uninstallation Script")
 
         # Finish installation if none
