@@ -1,3 +1,4 @@
+.tmp
 .gitignore
 .idea
 *.pyc
