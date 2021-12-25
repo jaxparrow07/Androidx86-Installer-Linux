@@ -23,9 +23,14 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Linux Distro (please complete the following information):**
+**Linux Distro:**
  - OS: [e.g. Ubuntu]
  - Version [e.g. 20.04 LTS]
+
+**Installation ISO:**
+ - Android Image ( Androidx86 ) : [e.g. BlissOS, PrimeOS]
+ - Version [e.g. Mainline]
+ - Link [If possible link the iso or the official site]
 
 **Additional context**
 Add any other context about the problem here.
