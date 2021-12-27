@@ -8,7 +8,7 @@ with io.open(VERSION_PATH, 'r', encoding='utf-8') as f:
   version = f.read().strip()
 
 setup(
-    name = "advanced-ax86-installer",        # what you want to call the archive/egg
+    name = "androidx86-installer",        # what you want to call the archive/egg
     version = version,
     packages=["app"],    # top-level python modules you can import like
                                 #   'import foo'
