@@ -8,7 +8,7 @@ with io.open(VERSION_PATH, 'r', encoding='utf-8') as f:
   version = f.read().strip()
 
 setup(
-    name = "advanced-ax86-installer",        # what you want to call the archive/egg
+    name = "androidx86-installer",        # what you want to call the archive/egg
     version = version,
     packages=["app"],    # top-level python modules you can import like
                                 #   'import foo'
@@ -18,7 +18,7 @@ setup(
                             #   like 'app[foo]'
     package_data = {"app": ["VERSION.txt"]},
     author="Jaxparrow",
-    author_email = "jackandrichardjunior@gmail.com",
+    author_email = "jaxparrow07@pm.me",
     description = "A GUI android-x86 installer for the Linux platform",
     license = "GPL-2.0",
     keywords= "android-x86",
