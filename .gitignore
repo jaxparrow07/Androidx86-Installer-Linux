@@ -9,3 +9,4 @@
 /dist/
 *.egg-info/
 venv/
+main_app.spec
