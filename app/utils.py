@@ -1,15 +1,25 @@
 import os
 import app.resources as resources
-from subprocess import check_output, CalledProcessError
+from shutil import which as sh_which
+from datetime import datetime
 
 class Utils():
     def __init__(self, current_dir):
         super().__init__()
         self.cwd = current_dir
         self.custom_40 = "/etc/grub.d/40_custom"
+        self.log_prefix = {"warning":"WARN","error":"ERR","task":"TASK","info":"INFO","ok":"DONE"}
 
         if not os.path.isdir(self.cwd + "/.tmp/"):
             os.mkdir(self.cwd + "/.tmp/")
+
+
+    def isGrubEntrySafe(self):
+        return sh_which("grub-customizer") is None and sh_which("update-grub") is not None
+
+    def Log(self,log_type, log_mesage):
+        now = datetime.now()
+        print(now.strftime("%H:%M:%S") + ": ax86-Installer - " + self.log_prefix[log_type] + " - " + log_mesage)
 
     def isCustomExists(self):
         return os.path.isfile(self.custom_40)
@@ -22,6 +32,15 @@ class Utils():
             path = "/tmp/tmp"
 
         return True
+
+    def getGrubCode(self, entry_name, isHome):
+
+        path = entry_name
+        if isHome:
+            path = "home/" + entry_name
+
+        return resources.custom_entry.format(osname=entry_name, name=path)
+
 
     def GenGrubEntry(self, entry_name, isHome, process):
 
