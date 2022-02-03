@@ -5,12 +5,13 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from subprocess import CalledProcessError, check_output
 from random import randint
-# from webbrowser import open as web_open
+from shutil import which as sh_which
 import psutil
 import configparser
 import os
 import sys
 import app.utils as app_utils
+
 
 
 # 10 Important imports - Some are optimized to minimum imports
@@ -73,7 +74,6 @@ Installation Steps:-
 Note : Currently only for Ubuntu and some debian based distros.
 """
 
-#print("Starting app from " + pyroot)
 version_name = open(fetchResource("app/VERSION.txt"), "r").read()
 debug = False
 
@@ -106,6 +106,8 @@ class DataWorker(QObject):
         self.file_n = file_n
         self.bs = bs
         self.count = count
+        self.Utils = app_utils.Utils(pyroot)
+
 
     def run(self):
         try:
@@ -121,7 +123,7 @@ class DataWorker(QObject):
             self.on_create_fail.emit()
             return
 
-        print("[*] ax86-Installer : Creating Superblocks for Data")
+        self.Utils.Log("task","Creating Superblocks for Data")
 
         try:
             output = check_output(["pkexec", "mkfs.ext4", self.file_n])
@@ -138,23 +140,23 @@ class DataWorker(QObject):
 
 class Grub_entry(QObject):
 
-
     grub_installed = pyqtSignal()
     grub_failed = pyqtSignal()
     finished = pyqtSignal()
 
-    def __init__(self,globname,isHome,uprocess):
+    def __init__(self,name,isHome,uprocess):
         super().__init__()
-        self.globname = globname
+        self.name = name
         self.isHome = isHome
         self.u_process = uprocess
         self.Utils = app_utils.Utils(pyroot)
 
     def run(self):
 
-        ret_val = self.Utils.GenGrubEntry(self.globname, self.isHome, str(self.u_process))
+        ret_val = self.Utils.GenGrubEntry(self.name, self.isHome, str(self.u_process))
 
         if ret_val:
+            self.Utils.Log("ok","Created GRUB Entry")
             self.grub_installed.emit()
 
         else:
@@ -179,9 +181,13 @@ class Worker(QObject):
         self.files = files
         self.sessionid = sessionid
         self.destin = destination
+        self.Utils = app_utils.Utils(pyroot)
+
 
     def run(self):
+        self.Utils.Log("info","Copying Files")
         for file in self.files:
+            self.Utils.Log("task","Copying " + file)
             fsize = int(os.path.getsize(self.sessionid+'/'+file))
             new = self.destin + file
             self.update_stats.emit(fsize,file)
@@ -197,8 +203,8 @@ class Worker(QObject):
                         # self.singlefileprog.setValue()
                         self.update_prog.emit(len(buffer))
             self.update_finish.emit()
+        self.Utils.Log("ok","File Copying Finished")
         self.finished.emit()
-
 
 class Loader(QWidget):
     def __init__(self,text):
@@ -284,14 +290,12 @@ class AboutWindow(QWidget):
         self.tabs.resize(300, 130)
 
 
-
         self.tabs.addTab(self.tab1, "About")
         self.tabs.addTab(self.tab2, "Libraries")
         self.tabs.addTab(self.tab3, "Thanks To")
 
         self.tab1.layout = QVBoxLayout()
         self.tab2.layout = QVBoxLayout()
-
 
         self.main_about = QLabel(about_s1)
 
@@ -320,7 +324,6 @@ class AboutWindow(QWidget):
         #self.scrl_lt.addWidget(self.thanks_lbl)
 
         self.scroll_tab3.setWidget(self.thanks_lbl)
-
 
         hbox = QHBoxLayout()
         hbox.addWidget(Pixmap_label)
@@ -411,10 +414,8 @@ class Example(QMainWindow):
 
     def install_done(self, get_name):
         msg = QMessageBox()
-        msg.setText("Successfully Installed")
-        msg.setInformativeText(get_name+' has been installed Successfully')
-        msg.setWindowTitle("Androidx86-Installer has Encountered an error")
-
+        msg.setText(get_name+' has been installed Successfully')
+        msg.setWindowTitle("Successfully Installed")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.buttonClicked.connect(self.revertback)
         msg.exec_()
@@ -453,7 +454,8 @@ class Example(QMainWindow):
         self.globname = ""
         self.globmdir = ""
         self.loadwin_vis = False
-
+        self.hasGearlock = False
+        self.grub_code = None
 
         ##################   Menubar  #############################
 
@@ -533,7 +535,7 @@ class Example(QMainWindow):
             self.c_home = False
             getpart = getpart.replace(root, '')
 
-        self.Installationpart.addItem('Current Home Directory')
+        self.Installationpart.addItem('Root Home Directory')
         for item in getpart.split():
             self.Installationpart.addItem(item)
 
@@ -562,14 +564,33 @@ class Example(QMainWindow):
         # Custom configurable widgets
         self.gen_unins_checkbox = QCheckBox("Generate Uninstallation Script")
         self.gen_unins_checkbox.setChecked(True)
+
+        #self.gearlock_boot_installer = QCheckBox("Gearlock boot installer")
+
         self.ExtraOptlayout.addWidget(self.gen_unins_checkbox)
+        #self.ExtraOptlayout.addWidget(self.gearlock_boot_installer)
+
+        # Toggles visibility if gearlock boot installer isn't available
+        #if (self.Utils.hasBootInstaller()):
+        #    self.gearlock_boot_installer.setVisible(True)
 
         self.ExtraOptlayout.addWidget(QLabel('GRUB Entry Options'))
 
         self.create_grub_entry = QCheckBox("Create GRUB Entry")
         self.create_grub_entry.setChecked(True)
         self.create_grub_entry.stateChanged.connect(self.Togglegrubsettings)
+
+        self.grub_code_box = QPlainTextEdit(self)
+        self.grub_code_box.setReadOnly(True)
+        self.grub_code_box.setVisible(False)
+
+        self.copy_grub_button = QPushButton("Copy GRUB Entry")
+        self.copy_grub_button.clicked.connect(self.grub_copy)
+
         self.ExtraOptlayout.addWidget(self.create_grub_entry)
+        self.ExtraOptlayout.addWidget(self.grub_code_box)
+        self.ExtraOptlayout.addWidget(self.copy_grub_button)
+
 
         self.grub_settings = QVBoxLayout()
 
@@ -595,7 +616,6 @@ class Example(QMainWindow):
         self.ExtraOptframe.setFrameShape(QFrame.StyledPanel)
         self.ExtraOptframe.setVisible(False)
         self.ExtraOptframe.setFixedHeight(370)
-
 
         self.Installinglayout = QVBoxLayout()
         self.Installinglayout.setAlignment(Qt.AlignTop)
@@ -691,6 +711,7 @@ class Example(QMainWindow):
             self.Datasizetxt.setVisible(True)
 
     def revertback(self):
+        self.Utils.Log("info","Reverting back to default")
         self.prevfile = self.fileName
         self.prevsessionid = self.session_id
         self.session_id = ""
@@ -735,7 +756,6 @@ class Example(QMainWindow):
             self.session_id = '/tmp/'+'ax86_mount'
             self.Bmenuwid.setEnabled(False)
 
-
             if os.path.isdir(self.session_id):
                 try:
                     output = check_output(["pkexec", "umount", self.session_id])
@@ -748,8 +768,8 @@ class Example(QMainWindow):
             else:
                  os.mkdir(self.session_id)
 
-
             try:
+                self.Utils.Log("task", "Mounting iso - " + self.Isonamevar)
                 output = check_output(["pkexec", "mount", "--options","loop",self.Isonamevar,self.session_id])
                 returncode = 0
             except CalledProcessError as e:
@@ -757,13 +777,17 @@ class Example(QMainWindow):
                 returncode = e.returncode
 
             if returncode != 0:
-                print("[!] ax86-Installer : Process Folder Create Failed")
+                self.Utils.Log("error", "Mounting failed")
                 self.showdialog(
-                    'Cannot Create Folder', 'Folder Creation cancelled by user', 'none')
+                    'Error', 'Iso Mounting Failed due to unknown reason', 'none')
                 return
 
+            self.Utils.Log("ok","Mounted iso")
 
             if os.path.isfile(self.session_id+'/windows/config.ini'):
+
+                self.Utils.Log("info", "Found Installer Config")
+
                 config = configparser.ConfigParser()
                 config.read(self.session_id + '/windows/config.ini')
                 MetaOSName = config.get('META-DATA', 'NAME')
@@ -778,6 +802,7 @@ class Example(QMainWindow):
                     self.OSVERtxt.setText(MetaOSVer[1:len(MetaOSVer)-1])
                 else:
                     self.OSVERtxt.setText(MetaOSVer)
+
             else:
                 self.Installbtn.setEnabled(False)
 
@@ -805,10 +830,9 @@ class Example(QMainWindow):
 
             files = ['initrd.img','kernel', 'install.img', 'system.sfs']
 
-            ## Necessary files checking
             for nes_file in files:
                 if not os.path.isfile(self.session_id+'/'+nes_file):
-                    print("[!] ax86-Installer : Process Data Create Failed")
+                    self.Utils.Log("error", "Unsupported Iso - file missing")
                     self.showdialog('Invalid Iso',
                                     'Important file missing', detailedtext="""
 Missing file : %s""" % (nes_file))
@@ -825,14 +849,13 @@ Missing file : %s""" % (nes_file))
                 self.Installationpart.currentIndex())
 
 
-
             OS_NAME = self.OSNAMEtxt.text() + '-' + self.OSVERtxt.text()
             OS_NAME.replace(' ', '_')
             self.globname = OS_NAME
 
             # os.system('app/bin/unmounter ' + partition)
 
-            if partition == 'Current Home Directory':
+            if partition == 'Root Home Directory':
                 home = True
             else:
                 home = False
@@ -840,7 +863,6 @@ Missing file : %s""" % (nes_file))
                 self.mount_point = self.mount_point[:-1] + '/'
 
             self.globhome = home
-
 
             # os.system('app/bin/mounter ' + partition)
 
@@ -851,7 +873,7 @@ Missing file : %s""" % (nes_file))
             filesize = os.path.getsize(self.fileName)
 
             if hdd.free < filesize:
-                print("[!] ax86-Installer : Not Enough Space in " +
+                self.Utils.Log("error","File Copy Failed - insufficient space in " +
                       self.Installationpart.itemText(self.Installationpart.currentIndex))
                 self.showdialog('Error when copying files', 'Not Enough Space on the specified partition', detailedtext="""
 Space required for installation : %d MB
@@ -871,8 +893,11 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     return
 
             else:
+
                 DESTINATION = '/home/' + OS_NAME + '/'
                 dirname = '/home/' + OS_NAME
+
+                self.Utils.Log("task", "Creating Folder (directory) - " + dirname)
 
                 if not os.path.isdir(dirname):
                     try:
@@ -883,16 +908,18 @@ Please rename the folder or use other name in the Os name and Version field""" %
                         returncode = e.returncode
 
                     if returncode != 0:
-                        print("[!] ax86-Installer : Process Folder Create Failed")
+                        self.Utils.Log("error","Folder Creation Failed - aborted by user")
                         self.showdialog(
                             'Cannot Create Folder', 'Folder Creation cancelled by user', 'none')
                         return
                 else:
+                    self.Utils.Log("error", "Folder Creation Failed - already exists")
                     self.showdialog('Folder Already Exists', 'Folder Creation Failed', detailedtext="""
 The installation folder %s already exists.
 Please rename the folder or use other name in the Os name and Version field""" % (dirname))
                     return
 
+                self.Utils.Log("task", "Owning Directory ( folder ) - " + dirname)
                 try:
                     output = check_output(["pkexec", "chmod", "777", dirname])
                     returncode = 0
@@ -901,7 +928,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     returncode = e.returncode
 
                 if returncode != 0:
-                    print("[!] ax86-Installer : Process Chmod Failed")
+                    self.Utils.Log("error","Owning Failed - aborted by user")
                     self.showdialog('Cannot Own Folder',
                                     'Chmod cancelled by user', 'none')
                     return
@@ -995,10 +1022,10 @@ Please rename the folder or use other name in the Os name and Version field""" %
             bytes_dat = int(self.Datasize.value()) * 1024 * 1024 * 1024
             count = int(self.Datasize.value()) * 1024
 
-            print("[*] ax86-Installer : Creating Data.img")
+            self.Utils.Log("task", "Creating data.img of " + bytes_dat + " bytes")
 
             if hdd.free < bytes_dat:
-                print("[!] ax86-Installer : Process Data Create Failed")
+                self.Utils.Log("error", "Data Creation failed - insufficient space")
                 self.showdialog('Cannot Create data.img', 'Insufficient Space', detailedtext="""
 Space required for Data.img : %d GB
 Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 / 1024))
@@ -1030,10 +1057,10 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
 
                 self.datathread.start()
 
-
         # Will continue installtion if data image is not created otherwise it will wait for callback
         if not self.data_create:
             self.show_notifier("Info","You can close the installer now or head to next step")
+            self.Utils.Log("info", "Necessary Steps Completed")
             self.toggle_config(True)
             self.isInstalled = True
             self.Bmenuwid.setEnabled(True)
@@ -1047,7 +1074,6 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         x = msg.exec_()  # this will show our messagebox
 
     def data_create_finish(self):
-        # print("[*] ax86-Installer : Creating GRUB Entries")
         msg = QMessageBox()
         msg.setWindowTitle("Info")
         msg.setText(
@@ -1061,25 +1087,23 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.Bmenuwid.setEnabled(True)
 
     def data_create_fail(self):
-        print("[!] ax86-Installer : Process Data Create Failed")
+        self.Utils.Log("error", "Data Image Creation Failed")
         self.showdialog('Cannot Create data.img',
                         'Data Image creation Failed', 'none')
         return
 
     def data_verify_fail(self):
-        print("[!] ax86-Installer : Process Data Create Failed")
+        self.Utils.Log("error", "Data Image Verification Failed")
         self.showdialog(
             'Cannot Create data.img', 'Data Image creation Failed on Verification', 'none')
         return
 
-    def grub_fail_call(self):
-        self.show_notifier("Info","Error: Grub entry not created")
 
     def Generate_Uninstall(self):
 
         if (self.gen_unins_checkbox.isChecked()):
             # Code to generate uninstallation script
-            print("Generating Uninstallation Script")
+            self.Utils.Log("task", "Generating Uninstallation Script")
 
         self.Finish_Install()
 
@@ -1087,16 +1111,17 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.loadwin.close()
         self.show_notifier("Info", "Error: Unable to create GRUB entry")
         self.loadwin_vis = False
+        self.Utils.Log("warning","Unable to Create GRUB Entry")
+        self.Utils.Log("info", "Skipping GRUB Entry creation")
 
     def extra_opt(self):
 
         self.u_process = randint(10000,999999)
 
-        # Write code to generate Grub entry and Uninstallation
         if (self.create_grub_entry.isChecked()):
 
             self.loadwin_vis = True
-            self.loadwin = Loader("Adding Boot Entry")
+            self.loadwin = Loader("Adding GRUB Entry")
             self.loadwin.setParent(self, Qt.Window)
             self.Show_loader()
 
@@ -1121,6 +1146,13 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         else:
             self.Generate_Uninstall()
 
+    def grub_copy(self):
+
+        if self.grub_code != None:
+            cb = QApplication.clipboard()
+            cb.clear(mode=cb.Clipboard)
+            cb.setText(self.grub_code, mode=cb.Clipboard)
+            self.Utils.Log("info", "Copied GRUB Entry")
 
     def closeEvent(self, event):
         if self.loadwin_vis:
@@ -1128,11 +1160,24 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         event.accept()
 
     def Finish_Install(self):
+        self.Utils.Log("ok", "Successfully Installed - " + self.globname)
         self.install_done(self.globname)
 
     def ExtraOptions(self):
+
         self.Installingframe.setVisible(False)
         self.ExtraOptframe.setVisible(True)
+
+        self.grub_code = self.Utils.getGrubCode(self.globname, self.globhome)
+
+        if not self.Utils.isGrubEntrySafe():
+            self.grub_code_box.setVisible(True)
+            self.grub_code_box.setPlainText(self.grub_code)
+            self.create_grub_entry.setChecked(False)
+            self.create_grub_entry.setDisabled(True)
+            self.Utils.Log("warning","GRUB Entry Creation Disabled - Found grub-customizer or update-grub not found")
+            self.show_notifier("Warning", "Disabled GRUB Entry as it may break your system ( unsupported system or state )")
+
 
 
     def openFileNameDialog(self):
@@ -1181,13 +1226,17 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
         self.hlpwin.show()
 
     def func_quit_all_windows(self):
-        self.loadwin.close()
+        if self.loadwin_vis:
+            self.loadwin.close()
         sys.exit()
-
-        ############################################################
 
 
 def main():
+
+    if sh_which('pkexec') == None:
+        print("pkexec: Not Found")
+        exit(1)
+
     app = QApplication(sys.argv)
     ex = Example()
     sys.exit(app.exec_())
