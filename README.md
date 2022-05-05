@@ -1,4 +1,5 @@
 # Androidx86 Installer for Linux
+![](banner.png)
 
 ```
 Advanced and easy to use Advanced Android x86 installer for Linux.
@@ -8,8 +9,6 @@ Check Releases for Installation : https://github.com/jaxparrow07/Androidx86-Inst
 
 _NOTE : This project is being refactored for better maintenance_
 
-## Grapical User Interface
-_TODO_
 ## Features
 * Guided User Interface
 * Supports installation on ext and other filesystems
