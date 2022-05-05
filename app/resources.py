@@ -100,7 +100,7 @@ initrd /{name}/initrd.img # {pid} - ax86-installer
 
 custom_entry = """insmod all_video
 search --set=root --file /{name}/findme
-linux /{name}/kernel quiet root=/dev/ram0 androidboot.selinux=permissive SRC=/{osname}/ noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier mds=off intel_pstate=disable mitigations=off
+linux /{name}/kernel root=/dev/ram0 acpi_osi=Linux mitigations=off androidboot.hardware=android_x86_64 androidboot.selinux=permissive SRC=/{osname}/
 initrd /{name}/initrd.img"""
 
 uninstallation_script = """
