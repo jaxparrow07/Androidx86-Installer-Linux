@@ -2,8 +2,6 @@
 
 """UI"""
 
-
-
 help_basic = """
 <center>
 <h2>Basic</h2>
@@ -143,7 +141,3 @@ else
   exit 1
 fi
 """
-=======
-linux /{name}/kernel root=/dev/ram0 acpi_osi=Linux mitigations=off androidboot.hardware=android_x86_64 androidboot.selinux=permissive SRC=/{osname}/
-initrd /{name}/initrd.img"""
->>>>>>> 5b95552b24deea82c693fed5f0fddcc68240fd96
