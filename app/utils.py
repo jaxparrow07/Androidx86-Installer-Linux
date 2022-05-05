@@ -24,14 +24,14 @@ class Utils():
     def isCustomExists(self):
         return os.path.isfile(self.custom_40)
 
-    def GenerateUnins(self, name, isHome, pid):
-
-        if isHome:
-            path = "/home/" + name + "/uninstall.sh"
-        else:
-            path = "/tmp/tmp"
-
-        return True
+    def GenerateUnins(self, name, session_id, path):
+        try:
+            with open(path + '/uninstall.sh', 'w') as gfile:
+                gfile.write(resources.uninstallation_script.format(osname=name, pid=session_id))
+        except:
+            return False
+        finally:
+            return True
 
     def getGrubCode(self, entry_name, isHome):
 

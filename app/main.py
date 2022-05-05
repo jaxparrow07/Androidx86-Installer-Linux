@@ -10,74 +10,18 @@ import psutil
 import configparser
 import os
 import sys
+
 import app.utils as app_utils
+import app.resources as resources
 
 
-
-# 10 Important imports - Some are optimized to minimum imports
 pyroot = os.path.dirname(os.path.dirname(__file__))
 def fetchResource(res):
     return pyroot + '/' + res
 
-## Adx86-Installer - Important Variables ##
-thanks_to =  """
-<b>AXON</b><br>
-<i>For helping in refactoring the project and fixing a lot of code.</i> <br>
-<br>
-<b>Team Bliss</b><br>
-<i>For supporting the project by promoting it.</i><br>
-<br>
-<b>Manky201 and Xtr ( Xttt )</b><br>
-<i>For giving suggestions and ideas in Mounting and Image creation.</i><br>
-"""
-
-libraries_used = """Python modules:
-
-    • PyQt5
-    • subprocess
-    • configparser
-    • psutil
-
-Uses some linux binaries too
-"""
-
-about_s1 = """Androidx86 Installer for Linux
-        
-(c) 2021, SupremeGamers
-
-"""
-
-helptxt = """
-
-Please read this if you don't know how to use
-
-Installation Steps:-
-    * Select a android image file
-    
-    * Choose Filesystem type
-      ( Ext or OtherFS )
-      -> Ext doesn't need data.img
-      
-    * Choose Data Size
-      ( OtherFS Only )
-      
-    * Extracting Iso will take some time
-      based on the filesize
-      
-    * OS Name and version
-      ( Multiple GRUB Entries )
-      -> This will automatically set them
-         if they are specified.
-         You need to set them manually if
-         the don't.
-         
-Note : Currently only for Ubuntu and some debian based distros.
-"""
-
 version_name = open(fetchResource("app/VERSION.txt"), "r").read()
 debug = False
 
-# Function to make Widgets clickable
 def clickable(widget):
     class Filter(QObject):
         clicked = pyqtSignal()
@@ -233,31 +177,55 @@ class HelpWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.widget = QWidget(self)
+
         layout = QVBoxLayout(self)
 
-        helptext = QLabel(helptxt)
-        helptext.adjustSize()
-        helptext.setFixedWidth(330)
-        helptext.setWordWrap(True)
-        helptext.setAlignment(Qt.AlignLeft)
+        self.scroll_tab1, self.scroll_tab2, self.scroll_tab3 = QScrollArea(), QScrollArea(), QScrollArea()
 
-        helpheading = QLabel("Installing")
-        helpheading.adjustSize()
-        helpheading.setFixedWidth(330)
-        helpheading.setFont(QFont('Arial', 13))
-        helpheading.setWordWrap(True)
-        helpheading.setAlignment(Qt.AlignCenter)
+        for scroll_tab in [self.scroll_tab1, self.scroll_tab2, self.scroll_tab3]:
+            scroll_tab.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            scroll_tab.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            scroll_tab.setFrameShape(QFrame.NoFrame)
 
-        layout.addWidget(helpheading)
-        layout.addWidget(helptext)
 
-        layoutscrl = QScrollArea(self)
-        layoutscrl.setFixedWidth(330)
-        layoutscrl.setFixedHeight(330)
-        qframe = QFrame()
-        qframe.setLayout(layout)
-        layoutscrl.setWidget(qframe)
-        layout.setAlignment(Qt.AlignTop)
+        self.tabs = QTabWidget()
+
+        self.tab1 = self.scroll_tab1
+        self.tab2 = self.scroll_tab2
+        self.tab3 = self.scroll_tab3
+
+        self.tabs.resize(300, 130)
+
+        self.tabs.addTab(self.tab1, "Basic")
+        self.tabs.addTab(self.tab2, "Advanced")
+        self.tabs.addTab(self.tab3, "Issues")
+
+        # Section Init
+        #self.tab1.layout.addWidget()
+
+        #self.tab2.layout.addWidget()
+        self.text1,self.text2, self.text3 = QLabel(resources.help_basic), QLabel(resources.help_advanced), QLabel(resources.help_issues)
+        for text in [ self.text1,self.text2, self.text3 ]:
+            text.setFixedWidth(280)
+            text.setWordWrap(True)
+            text.setOpenExternalLinks(True)
+        
+        self.scroll_tab1.setWidget(self.text1)
+        self.scroll_tab2.setWidget(self.text2)
+        self.scroll_tab3.setWidget(self.text3)
+
+        close_box = QHBoxLayout()
+
+        self.close_btn = QPushButton("Close")
+        self.close_btn.clicked.connect(self.close)
+
+        close_box.addWidget(self.close_btn)
+        close_box.setAlignment(Qt.AlignRight)
+
+        layout.addWidget(self.tabs)
+        layout.addLayout(close_box)
+
+        self.setLayout(layout)
 
         self.setWindowTitle('Help')
         self.setGeometry(570, 190, 330, 330)
@@ -289,7 +257,6 @@ class AboutWindow(QWidget):
         self.tab3 = self.scroll_tab3
         self.tabs.resize(300, 130)
 
-
         self.tabs.addTab(self.tab1, "About")
         self.tabs.addTab(self.tab2, "Libraries")
         self.tabs.addTab(self.tab3, "Thanks To")
@@ -297,7 +264,7 @@ class AboutWindow(QWidget):
         self.tab1.layout = QVBoxLayout()
         self.tab2.layout = QVBoxLayout()
 
-        self.main_about = QLabel(about_s1)
+        self.main_about = QLabel(resources.about_s1)
 
         self.site_link = QLabel("<a href=\"https://supreme-gamers.com\">https://supreme-gamers.com</a>")
         self.site_link.setOpenExternalLinks(True)
@@ -313,10 +280,10 @@ class AboutWindow(QWidget):
         self.tab1.setLayout(self.tab1.layout)
 
         self.tab2.layout.setAlignment(Qt.AlignTop)
-        self.tab2.layout.addWidget(QLabel(libraries_used))
+        self.tab2.layout.addWidget(QLabel(resources.about_libraries_used))
         self.tab2.setLayout(self.tab2.layout)
 
-        self.thanks_lbl = QLabel(thanks_to)
+        self.thanks_lbl = QLabel(resources.about_thanks_to)
         self.thanks_lbl.setFixedWidth(280)
         self.thanks_lbl.setWordWrap(True)
 
@@ -378,7 +345,6 @@ class Example(QMainWindow):
     def dropEvent(self, event):
         files = [u.toLocalFile() for u in event.mimeData().urls()]
         self.fileName = files[0]
-
 
         if '.iso' in self.fileName:
             self.Pixmap_label.setPixmap(self.iso_loaded)
@@ -870,7 +836,7 @@ Missing file : %s""" % (nes_file))
                 hdd = psutil.disk_usage(self.mount_point)
             else:
                 hdd = psutil.disk_usage('/home/')
-            filesize = os.path.getsize(self.fileName)
+            filesize = os.path.getsize(self.Isonamevar)
 
             if hdd.free < filesize:
                 self.Utils.Log("error","File Copy Failed - insufficient space in " +
@@ -885,7 +851,7 @@ Free up some space and retry again.""" % (filesize / 1024 / 1024, self.Installat
             if not home:
                 if not os.path.isdir(self.mount_point+OS_NAME+'/'):
                     os.mkdir(self.mount_point+OS_NAME)
-                    DESTINATION = self.mount_point + OS_NAME + '/'
+                    self.DESTINATION = self.mount_point + OS_NAME + '/'
                 else:
                     self.showdialog('Folder Already Exists', 'Folder Creation Failed', detailedtext="""
 The installation folder %s in %s already exists.
@@ -894,7 +860,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
 
             else:
 
-                DESTINATION = '/home/' + OS_NAME + '/'
+                self.DESTINATION = '/home/' + OS_NAME + '/'
                 dirname = '/home/' + OS_NAME
 
                 self.Utils.Log("task", "Creating Folder (directory) - " + dirname)
@@ -919,7 +885,7 @@ The installation folder %s already exists.
 Please rename the folder or use other name in the Os name and Version field""" % (dirname))
                     return
 
-                self.Utils.Log("task", "Owning Directory ( folder ) - " + dirname)
+                self.Utils.Log("task", "Owning FOlder ( directory ) - " + dirname)
                 try:
                     output = check_output(["pkexec", "chmod", "777", dirname])
                     returncode = 0
@@ -937,7 +903,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
             self.toggle_config(False)
             self.thread = QThread()
 
-            self.worker = Worker(files,self.session_id,DESTINATION)
+            self.worker = Worker(files,self.session_id,self.DESTINATION)
             self.worker.moveToThread(self.thread)
 
             self.thread.started.connect(self.worker.run)
@@ -989,11 +955,11 @@ Please rename the folder or use other name in the Os name and Version field""" %
                     ["touch",self.mount_point + self.globname + '/findme' ]
                 )
             else:
-                DESTINATION = '/home/' + self.globname
-                os.mkdir(DESTINATION + '/data')
+                self.DESTINATION = '/home/' + self.globname
+                os.mkdir(self.DESTINATION + '/data')
                 # os.system('touch ' + DESTINATION + '/findme')
                 output = check_output(
-                    ["touch",DESTINATION+'/findme' ]
+                    ["touch",self.DESTINATION+'/findme' ]
                 )
         else:
             self.data_create = True
@@ -1010,10 +976,10 @@ Please rename the folder or use other name in the Os name and Version field""" %
             else:
                 file = 'of=/home/' + self.globname + '/data.img'
                 file_n = '/home/' + self.globname + '/data.img'
-                DESTINATION = '/home/' + self.globname
+                self.DESTINATION = '/home/' + self.globname
 
                 output = check_output(
-                    ["touch",DESTINATION+'/findme']
+                    ["touch",self.DESTINATION+'/findme']
                 )
 
                 hdd = psutil.disk_usage('/home/')
@@ -1022,7 +988,7 @@ Please rename the folder or use other name in the Os name and Version field""" %
             bytes_dat = int(self.Datasize.value()) * 1024 * 1024 * 1024
             count = int(self.Datasize.value()) * 1024
 
-            self.Utils.Log("task", "Creating data.img of " + bytes_dat + " bytes")
+            self.Utils.Log("task", "Creating data.img of " + str(bytes_dat) + " bytes")
 
             if hdd.free < bytes_dat:
                 self.Utils.Log("error", "Data Creation failed - insufficient space")
@@ -1102,8 +1068,12 @@ Space Available : %0.2f GB""" % (self.Datasize.value(), hdd.free / 1024 / 1024 /
     def Generate_Uninstall(self):
 
         if (self.gen_unins_checkbox.isChecked()):
-            # Code to generate uninstallation script
-            self.Utils.Log("task", "Generating Uninstallation Script")
+            print(self.DESTINATION)
+            ret = self.Utils.GenerateUnins(self.globname,self.session_id,self.DESTINATION)
+            if ret:
+                self.Utils.Log("ok", "Generated Uninstallation Script")
+            else:
+                self.Utils.Log("warning","Failed Generating Uninstallation Script")
 
         self.Finish_Install()
 
