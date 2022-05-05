@@ -1,4 +1,4 @@
-# Androidx86-Installer-Linux
+# Androidx86 Installer for Linux
 
 ```
 Advanced and easy to use Advanced Android x86 installer for Linux.
