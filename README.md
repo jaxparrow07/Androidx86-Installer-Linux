@@ -6,7 +6,7 @@ Developed with Python.
 ```
 Check Releases for Installation : https://github.com/jaxparrow07/Androidx86-Installer-Linux/releases
 
-_NOTE :This project is being refactored for better maintenance since the code is barely understandable to others._
+_NOTE : This project is being refactored for better maintenance_
 
 ## Grapical User Interface
 _TODO_
