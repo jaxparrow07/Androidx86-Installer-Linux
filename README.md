@@ -1,30 +1,48 @@
 # Androidx86-Installer-Linux
+
 ```
 Advanced and easy to use Advanced Android x86 installer for Linux.
-Developed with Python for linux.
+Developed with Python.
 ```
 Check Releases for Installation : https://github.com/jaxparrow07/Androidx86-Installer-Linux/releases
 
-### Screens (GUI)
-![Screenshot_20210408_105537](https://user-images.githubusercontent.com/36300128/114139762-0fa54700-992d-11eb-989a-045b63a55784.png)
-![Screenshot_20210408_105620](https://user-images.githubusercontent.com/36300128/114139848-2ba8e880-992d-11eb-9ae6-c4ff903b014a.png)
-![Screenshot_20210408_105825](https://user-images.githubusercontent.com/36300128/114139870-32376000-992d-11eb-8c53-48c7bf92a41e.png)
-![Screenshot_20210408_105956](https://user-images.githubusercontent.com/36300128/114140090-7165b100-992d-11eb-8161-f615d94db0f8.png)
+_NOTE :This project is being refactored for better maintenance since the code is barely understandable to others._
+
+## Grapical User Interface
+_TODO_
+## Features
+* Guided User Interface
+* Supports installation on ext and other filesystems
+* Data image creation
+* Grub entry creation ( safely )
+* Uninstallation script generation
+* Supports `config.ini` of ![AWIN Installer Dev](https://github.com/supremegamers/awin-installer-dev) ( Currently, **NAME** and **VERSION** metadata )
+* Advanced logs to show detailed information
+* Allows you to install on `/home` ( Root home directory / partition )
 
 
-### Uninstallation of Installed Androidx86
-You can find `uninstall.sh` on the installed location of the androidx86. You can simply execute the script to uninstall and remove the grub entry automatically.<br>
-![Screenshot_20210409_120320](https://user-images.githubusercontent.com/36300128/114140242-a540d680-992d-11eb-89ff-e6b315e9d90f.png)
+## Credits and Thanks
+* **@axonasif** for refactoring the whole project
+* [BlissOS](blissos.org) for promoting this project
+* Other members from SupremeGamers community who contibuted to this project
 
+## Copyright and License
 
-### To-do ( Next Update )
-- [x] Asynchronous tasks [ Threads ]
-- [x] Optimized Native ISO extraction [ Mounting ]
-- [x] Data Image Creation
-- [ ] GRUB Entry Adding
-- [ ] Uninstallation Script 
+This project is [GPL-2.0](https://github.com/jaxparrow07/Androidx86-Installer-Linux/blob/main/LICENSE) licensed.
 
-### Other Notes
-*Note : If you are a Android x86 dev or modder and if you create iso for AXON's Advanced x86 Installer. This Installer also supports the config you create*<br>
-https://github.com/AXIM0S/advanced-android-x86-win-installer-dev
-<br>
+```
+    Androidx86 Installer for Linux
+    Copyright (C) 2022 SupremeGamers
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; version 2.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
